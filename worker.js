@@ -3,6 +3,8 @@ export default {
     // CORS headers for all responses
     const headers = {
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Content-Type': 'application/json',
     };
     
@@ -12,6 +14,51 @@ export default {
     }
     
     const url = new URL(request.url);
+    
+    // Route: Get Clerk publishable key
+    if (url.pathname === '/api/clerk/config' && request.method === 'GET') {
+      return new Response(JSON.stringify({
+        publishableKey: env.CLERK_PUBLISHABLE_KEY
+      }), { headers });
+    }
+    
+    // Route: Verify Clerk session (backend verification)
+    if (url.pathname === '/api/clerk/verify-session' && request.method === 'POST') {
+      try {
+        const { sessionToken } = await request.json();
+        
+        if (!sessionToken) {
+          return new Response('{"valid":false,"error":"Session token required"}', { 
+            status: 400, headers 
+          });
+        }
+        
+        // Verify the session with Clerk's Backend API
+        const clerkResponse = await fetch(`https://api.clerk.com/v1/sessions/${sessionToken}/verify`, {
+          headers: {
+            'Authorization': `Bearer ${env.CLERK_SECRET_KEY}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (clerkResponse.ok) {
+          const sessionData = await clerkResponse.json();
+          return new Response(JSON.stringify({
+            valid: true,
+            userId: sessionData.user_id,
+            session: sessionData
+          }), { headers });
+        } else {
+          return new Response('{"valid":false,"error":"Invalid session"}', { 
+            status: 401, headers 
+          });
+        }
+      } catch (e) {
+        return new Response('{"valid":false,"error":"Verification failed"}', { 
+          status: 500, headers 
+        });
+      }
+    }
     
     // Route: Login and get session token
     if (url.pathname === '/api/login' && request.method === 'POST') {
