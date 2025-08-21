@@ -4,7 +4,6 @@ import { Input } from "./ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { RotatingWords } from "./RotatingWords";
 import { Loader2 } from "lucide-react";
-import { useClerk } from "@clerk/clerk-react";
 import { usePostHog } from 'posthog-js/react';
 import { authService } from "../services/passwordService";
 
@@ -26,13 +25,12 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
   // Tab state
   const [activeTab, setActiveTab] = useState<string>("waitlist");
   
-  const clerk = useClerk();
   const posthog = usePostHog();
   
   // This is the list of rotating words that can be edited - same as Index page
   const actionWords = ["explore?", "work through?", "discover?", "chat about?", "discuss?", "problem solve?", "brainstorm?"];
   
-  // Handle waitlist registration using Clerk
+  // Handle waitlist registration - simplified for now
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -46,33 +44,20 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
     setIsSubmitting(true);
     
     try {
-      // Create a user in Clerk with waitlist metadata
-      const signUp = await clerk.client.signUp.create({
-        emailAddress: email,
+      // For now, we'll just track the signup
+      // In production, you would integrate with Clerk's waitlist API
+      console.log('Waitlist signup:', email);
+      
+      // Track waitlist signup
+      posthog.capture('waitlist_signup', { 
+        email: email
       });
-
-      // Add waitlist metadata (simplified for build)
-      if (signUp.createdUserId) {
-        console.log('User created:', signUp.createdUserId);
-        // Track waitlist signup
-        posthog.capture('waitlist_signup', { 
-          email: email,
-          user_id: signUp.createdUserId 
-        });
-      }
 
       setIsSubmitted(true);
       setEmail("");
     } catch (error: any) {
       console.error("Waitlist signup error:", error);
-      
-      // Handle case where email already exists
-      if (error.errors?.[0]?.code === 'form_identifier_exists') {
-        setIsSubmitted(true);
-        setEmail("");
-      } else {
-        alert("Failed to join waitlist. Please try again.");
-      }
+      alert("Failed to join waitlist. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
