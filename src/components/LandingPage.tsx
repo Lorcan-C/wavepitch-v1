@@ -1,16 +1,31 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { RotatingWords } from "./RotatingWords";
 import { Loader2 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 import { usePostHog } from 'posthog-js/react';
+import { authService } from "../services/passwordService";
 
-export function LandingPage() {
+interface LandingPageProps {
+  onAuthenticated?: () => void;
+}
+
+export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
   // State for waitlist
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  
+  // State for password
+  const [password, setPassword] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string>("waitlist");
+  
   const clerk = useClerk();
   const posthog = usePostHog();
   
@@ -63,6 +78,31 @@ export function LandingPage() {
     }
   };
   
+  // Handle password submission
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsValidating(true);
+    setPasswordError("");
+    
+    try {
+      const result = await authService.login(password, posthog.capture);
+      
+      if (result.success) {
+        localStorage.setItem("app_password_authenticated", "true");
+        if (onAuthenticated) {
+          onAuthenticated();
+        }
+      } else {
+        setPasswordError(result.error || "Incorrect password");
+      }
+    } catch (error) {
+      console.error("Error validating password:", error);
+      setPasswordError("Error validating password. Please try again.");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background overflow-auto relative">
       {/* Background image layer with opacity */}
@@ -106,50 +146,99 @@ export function LandingPage() {
         
         <div className="max-w-md w-full mx-auto">
           <div className="w-full p-8 space-y-4 bg-white rounded-lg shadow-lg border border-gray-100">
-            {isSubmitted ? (
-              <div className="text-center space-y-4">
-                <Button 
-                  onClick={() => setIsSubmitted(false)}
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Add another email to waitlist
-                </Button>
-              </div>
-            ) : (
-              <>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="waitlist">Join Waitlist</TabsTrigger>
+                <TabsTrigger value="password">Enter Password</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="waitlist" className="space-y-4">
+                {isSubmitted ? (
+                  <div className="text-center space-y-4">
+                    <p className="text-muted-foreground">
+                      Successfully joined the waitlist!
+                    </p>
+                    <Button 
+                      onClick={() => setIsSubmitted(false)}
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Add another email to waitlist
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <h2 className="text-2xl font-bold text-center">Join the Waitlist</h2>
+                      <p className="text-center text-muted-foreground">
+                        Sign up to get notified when we launch.
+                      </p>
+                    </div>
+                    
+                    <form onSubmit={handleWaitlistSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Input
+                          type="email"
+                          placeholder="Email address *"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          autoFocus={activeTab === "waitlist"}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      
+                      <Button type="submit" className="w-full" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Join Waitlist"
+                        )}
+                      </Button>
+                    </form>
+                  </>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="password" className="space-y-4">
                 <div>
+                  <h2 className="text-2xl font-bold text-center">Enter Password</h2>
                   <p className="text-center text-muted-foreground">
-                    Join the waitlist for pre-launch access.
+                    This app is currently in testing mode and requires a password to access.
                   </p>
                 </div>
                 
-                <form onSubmit={handleWaitlistSubmit} className="space-y-4">
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Input
-                      type="email"
-                      placeholder="Email address *"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoFocus
-                      disabled={isSubmitting}
+                      type="password"
+                      placeholder="Enter password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoFocus={activeTab === "password"}
+                      disabled={isValidating}
                     />
+                    {passwordError && (
+                      <p className="text-sm text-red-500">{passwordError}</p>
+                    )}
                   </div>
                   
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
+                  <Button type="submit" className="w-full" disabled={isValidating}>
+                    {isValidating ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
+                        Validating...
                       </>
                     ) : (
-                      "Join Waitlist"
+                      "Enter App"
                     )}
                   </Button>
                 </form>
-              </>
-            )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
