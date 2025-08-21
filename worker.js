@@ -11,39 +11,131 @@ export default {
       return new Response(null, { headers });
     }
     
-    // Only handle our password endpoint
     const url = new URL(request.url);
-    if (url.pathname !== '/api/validate-password' || request.method !== 'POST') {
-      return new Response('{"error":"Not found"}', { status: 404, headers });
+    
+    // Route: Login and get session token
+    if (url.pathname === '/api/login' && request.method === 'POST') {
+      try {
+        const { password } = await request.json();
+        
+        if (!password) {
+          return new Response('{"success":false,"error":"Password required"}', { 
+            status: 400, headers 
+          });
+        }
+        
+        // Validate password with Supabase
+        const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/validate_password`, {
+          method: 'POST',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input_password: password })
+        });
+        
+        const isValid = await response.json();
+        
+        if (isValid === true) {
+          // Create session token (simple JWT-like token)
+          const sessionToken = btoa(JSON.stringify({
+            password: password,
+            created: Date.now(),
+            expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+          }));
+          
+          return new Response(`{"success":true,"token":"${sessionToken}"}`, { headers });
+        } else {
+          return new Response('{"success":false,"error":"Invalid password"}', { 
+            status: 401, headers 
+          });
+        }
+        
+      } catch (e) {
+        return new Response('{"success":false,"error":"Server error"}', { 
+          status: 500, headers 
+        });
+      }
     }
     
-    try {
-      const { password } = await request.json();
+    // Route: Validate session token
+    if (url.pathname === '/api/validate-session' && request.method === 'POST') {
+      try {
+        const { token } = await request.json();
+        
+        if (!token) {
+          return new Response('{"valid":false,"error":"Token required"}', { 
+            status: 400, headers 
+          });
+        }
+        
+        // Decode and validate token
+        const session = JSON.parse(atob(token));
+        const now = Date.now();
+        
+        if (now > session.expires) {
+          return new Response('{"valid":false,"error":"Token expired"}', { 
+            status: 401, headers 
+          });
+        }
+        
+        // Re-validate password with Supabase
+        const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/validate_password`, {
+          method: 'POST',
+          headers: {
+            'apikey': env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input_password: session.password })
+        });
+        
+        const isValid = await response.json();
+        return new Response(`{"valid":${isValid === true}}`, { headers });
+        
+      } catch (e) {
+        return new Response('{"valid":false,"error":"Invalid token"}', { 
+          status: 401, headers 
+        });
+      }
+    }
+    
+    // Protected API example
+    if (url.pathname === '/api/protected-data' && request.method === 'GET') {
+      const authHeader = request.headers.get('Authorization');
+      const token = authHeader?.replace('Bearer ', '');
       
-      if (!password) {
-        return new Response('{"isValid":false,"error":"Password required"}', { 
-          status: 400, headers 
+      if (!token) {
+        return new Response('{"error":"Authorization required"}', { 
+          status: 401, headers 
         });
       }
       
-      // Call Supabase
-      const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/validate_password`, {
-        method: 'POST',
-        headers: {
-          'apikey': env.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ input_password: password })
-      });
-      
-      const result = await response.json();
-      return new Response(`{"isValid":${result === true}}`, { headers });
-      
-    } catch (e) {
-      return new Response('{"isValid":false,"error":"Server error"}', { 
-        status: 500, headers 
-      });
+      // Validate session
+      try {
+        const session = JSON.parse(atob(token));
+        const now = Date.now();
+        
+        if (now > session.expires) {
+          return new Response('{"error":"Session expired"}', { 
+            status: 401, headers 
+          });
+        }
+        
+        // Return protected data
+        return new Response('{"data":"This is protected content!","user":"authenticated"}', { 
+          headers 
+        });
+        
+      } catch (e) {
+        return new Response('{"error":"Invalid session"}', { 
+          status: 401, headers 
+        });
+      }
     }
+    
+    // Default 404
+    return new Response('{"error":"Not found"}', { status: 404, headers });
   }
 };

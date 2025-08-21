@@ -61,6 +61,7 @@
     "next-themes": "^0.3.0",
     "openai": "^5.13.1",
     "pdfjs-dist": "^5.4.54",
+    "posthog-js": "^1.260.2",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",

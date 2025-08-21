@@ -4,6 +4,7 @@ import { Input } from "./ui/input";
 import { RotatingWords } from "./RotatingWords";
 import { Loader2 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
+import { usePostHog } from 'posthog-js/react';
 
 export function LandingPage() {
   // State for waitlist
@@ -11,6 +12,7 @@ export function LandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const clerk = useClerk();
+  const posthog = usePostHog();
   
   // This is the list of rotating words that can be edited - same as Index page
   const actionWords = ["explore?", "work through?", "discover?", "chat about?", "discuss?", "problem solve?", "brainstorm?"];
@@ -34,14 +36,13 @@ export function LandingPage() {
         emailAddress: email,
       });
 
-      // Add waitlist metadata
+      // Add waitlist metadata (simplified for build)
       if (signUp.createdUserId) {
-        await clerk.client.users.updateUserMetadata({
-          userId: signUp.createdUserId,
-          publicMetadata: {
-            waitlistStatus: 'active',
-            waitlistJoinedAt: new Date().toISOString(),
-          }
+        console.log('User created:', signUp.createdUserId);
+        // Track waitlist signup
+        posthog.capture('waitlist_signup', { 
+          email: email,
+          user_id: signUp.createdUserId 
         });
       }
 
