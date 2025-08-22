@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
 import { LandingPage } from './components/LandingPage'
-import { DemoPage } from './components/DemoPage'
 import './styles/index.css'
 
 function App() {
@@ -14,7 +13,12 @@ function App() {
           element={
             <>
               <SignedIn>
-                <DemoPage />
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-4xl font-bold mb-4">Welcome to Wavepitch Demo!</h1>
+                    <p className="text-gray-600">Demo page coming soon...</p>
+                  </div>
+                </div>
               </SignedIn>
               <SignedOut>
                 <RedirectToSignIn />
