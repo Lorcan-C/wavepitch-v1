@@ -1,22 +1,25 @@
-# Setting up Clerk with Cloudflare Secrets
+# Setting up Clerk Authentication
 
-## Prerequisites
-1. Install Wrangler CLI: `npm install -g wrangler`
+## Frontend Setup
+1. Get your Clerk publishable key from https://dashboard.clerk.com
+2. Add it directly to `src/main.tsx`:
+   ```javascript
+   const CLERK_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE'
+   ```
+   This key is safe to commit to your repository.
+
+## Cloudflare Worker Setup (for existing password auth)
+
+### Prerequisites
+1. Install Wrangler CLI: `brew install cloudflare-wrangler`
 2. Login to Cloudflare: `wrangler login`
-3. Get your Clerk API keys from https://dashboard.clerk.com
 
-## Adding Secrets to Cloudflare
+### Adding Secrets to Cloudflare
 
 Run these commands in your project directory:
 
 ```bash
-# Add Clerk Publishable Key (from Clerk Dashboard)
-wrangler secret put CLERK_PUBLISHABLE_KEY
-
-# Add Clerk Secret Key (from Clerk Dashboard - API Keys section)
-wrangler secret put CLERK_SECRET_KEY
-
-# Your existing Supabase secrets (if not already added)
+# Your existing Supabase secrets for password authentication
 wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_ANON_KEY
 ```
