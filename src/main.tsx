@@ -6,7 +6,7 @@ import App from './App.tsx'
 import './styles/index.css'
 
 // Clerk publishable key - this is safe to expose in frontend code
-const CLERK_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE'
+const CLERK_PUBLISHABLE_KEY = 'pk_test_c3dlZXQtZmxlYS02Ny5jbGVyay5hY2NvdW50cy5kZXYk'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
