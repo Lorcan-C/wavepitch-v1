@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { RotatingWords } from "./RotatingWords";
 import { Loader2 } from "lucide-react";
 import { usePostHog } from 'posthog-js/react';
-import { authService } from "../services/passwordService";
+import { SignInButton } from '@clerk/clerk-react';
 
 interface LandingPageProps {
   onAuthenticated?: () => void;
@@ -16,11 +16,6 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  // State for password
-  const [password, setPassword] = useState("");
-  const [isValidating, setIsValidating] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
   
   // Tab state
   const [activeTab, setActiveTab] = useState<string>("waitlist");
@@ -60,36 +55,6 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
       alert("Failed to join waitlist. Please try again.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-  
-  // Handle password submission
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsValidating(true);
-    setPasswordError("");
-    
-    try {
-      const result = await authService.validatePassword(password);
-      
-      if (result.success) {
-        localStorage.setItem("app_password_authenticated", "true");
-        // Track successful login
-        posthog.capture('user_logged_in', { method: 'password' });
-        
-        if (onAuthenticated) {
-          onAuthenticated();
-        }
-      } else {
-        setPasswordError(result.error || "Incorrect password");
-        // Track failed login
-        posthog.capture('login_failed', { method: 'password', error: result.error });
-      }
-    } catch (error) {
-      console.error("Error validating password:", error);
-      setPasswordError("Error validating password. Please try again.");
-    } finally {
-      setIsValidating(false);
     }
   };
   
@@ -139,7 +104,7 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="waitlist">Join Waitlist</TabsTrigger>
-                <TabsTrigger value="password">Enter Password</TabsTrigger>
+                <TabsTrigger value="early-access">Early Access</TabsTrigger>
               </TabsList>
               
               <TabsContent value="waitlist" className="space-y-4">
@@ -193,40 +158,25 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
                 )}
               </TabsContent>
               
-              <TabsContent value="password" className="space-y-4">
+              <TabsContent value="early-access" className="space-y-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-center">Enter Password</h2>
+                  <h2 className="text-2xl font-bold text-center">Early Access</h2>
                   <p className="text-center text-muted-foreground">
-                    This app is currently in testing mode and requires a password to access.
+                    Have early access? Sign in to get started.
                   </p>
                 </div>
                 
-                <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      autoFocus={activeTab === "password"}
-                      disabled={isValidating}
-                    />
-                    {passwordError && (
-                      <p className="text-sm text-red-500">{passwordError}</p>
-                    )}
-                  </div>
+                <div className="space-y-4">
+                  <SignInButton mode="modal" redirectUrl="/app">
+                    <Button className="w-full">
+                      Sign In with Early Access
+                    </Button>
+                  </SignInButton>
                   
-                  <Button type="submit" className="w-full" disabled={isValidating}>
-                    {isValidating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Validating...
-                      </>
-                    ) : (
-                      "Enter App"
-                    )}
-                  </Button>
-                </form>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Don't have early access yet? Join the waitlist to get notified when we launch.
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
           </div>

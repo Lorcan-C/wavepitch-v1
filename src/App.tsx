@@ -1,31 +1,50 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
 import { LandingPage } from './components/LandingPage'
+import { RequireApproval } from './components/RequireApproval'
+import NewPage from './pages/new/NewPage'
+import PanelPage from './pages/panel/PanelPage'
+import HubPage from './pages/hub/HubPage'
+import SettingsPage from './pages/settings/SettingsPage'
 import './styles/index.css'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Protected app routes */}
         <Route 
-          path="/demo" 
+          path="/app/*" 
           element={
             <>
               <SignedIn>
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">Welcome to Wavepitch Demo!</h1>
-                    <p className="text-gray-600">Demo page coming soon...</p>
-                  </div>
-                </div>
+                <RequireApproval>
+                  <Routes>
+                    <Route index element={<HubPage />} />
+                    <Route path="new" element={<NewPage />} />
+                    <Route path="panel" element={<PanelPage />} />
+                    <Route path="hub" element={<HubPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                  </Routes>
+                </RequireApproval>
               </SignedIn>
               <SignedOut>
                 <RedirectToSignIn />
               </SignedOut>
             </>
-          } 
+          }
         />
+        
+        {/* Legacy routes - redirect to app */}
+        <Route path="/demo" element={<Navigate to="/app" replace />} />
+        <Route path="/new" element={<Navigate to="/app/new" replace />} />
+        <Route path="/panel" element={<Navigate to="/app/panel" replace />} />
+        <Route path="/hub" element={<Navigate to="/app/hub" replace />} />
+        <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
