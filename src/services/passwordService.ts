@@ -1,10 +1,10 @@
-class AuthService {
-  private token: string | null = null;
+// Simple password authentication service
+class PasswordAuthService {
+  private readonly TOKEN_KEY = 'auth-token';
 
-  // Login with password and get session token
-  async login(password: string, trackEvent?: (event: string, properties?: any) => void): Promise<{ success: boolean; error?: string }> {
+  async validatePassword(password: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('https://wavepitch-v1.lorcanclarke.workers.dev/api/login', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -13,100 +13,40 @@ class AuthService {
       const result = await response.json();
       
       if (result.success && result.token) {
-        this.token = result.token;
-        localStorage.setItem('auth-token', result.token);
-        
-        // Track successful login
-        trackEvent?.('user_logged_in', { method: 'password' });
-        
+        // Store token in localStorage
+        localStorage.setItem(this.TOKEN_KEY, result.token);
         return { success: true };
-      } else {
-        // Track failed login attempt
-        trackEvent?.('login_failed', {
-          method: 'password',
-          error: result.error
-        });
-        
-        return { success: false, error: result.error || 'Login failed' };
       }
-    } catch (error) {
-      console.error('Login failed:', error);
       
-      // Track login error
-      trackEvent?.('login_error', {
-        method: 'password',
-        error: 'Server error'
-      });
-      
-      return { success: false, error: 'Server error' };
-    }
-  }
-
-  // Check if user has valid session
-  async isAuthenticated(): Promise<boolean> {
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      const response = await fetch('https://wavepitch-v1.lorcanclarke.workers.dev/api/validate-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-
-      const result = await response.json();
-      return result.valid === true;
+      return { 
+        success: false, 
+        error: result.error || 'Invalid password' 
+      };
     } catch (error) {
-      console.error('Session validation failed:', error);
-      return false;
+      console.error('Password validation error:', error);
+      return { 
+        success: false, 
+        error: 'Error validating password. Please try again.' 
+      };
     }
   }
 
-  // Get protected data (example API call)
-  async getProtectedData(): Promise<any> {
-    const token = this.getToken();
-    if (!token) throw new Error('Not authenticated');
-
-    const response = await fetch('https://wavepitch-v1.lorcanclarke.workers.dev/api/protected-data', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch protected data');
-    }
-
-    return response.json();
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem(this.TOKEN_KEY);
   }
 
-  // Logout
   logout(): void {
-    this.token = null;
-    localStorage.removeItem('auth-token');
+    localStorage.removeItem(this.TOKEN_KEY);
   }
 
-  // Get token from memory or localStorage
-  private getToken(): string | null {
-    if (this.token) return this.token;
-    
-    const stored = localStorage.getItem('auth-token');
-    if (stored) {
-      this.token = stored;
-      return stored;
-    }
-    
-    return null;
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 }
 
-export const authService = new AuthService();
+export const authService = new PasswordAuthService();
 
-// Backward compatibility
+// Legacy compatibility (if needed)
 export const passwordServiceV2 = {
-  async validatePassword(password: string): Promise<boolean> {
-    const result = await authService.login(password);
-    return result.success;
-  }
+  validatePassword: (password: string) => authService.validatePassword(password)
 };

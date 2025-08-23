@@ -70,15 +70,20 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
     setPasswordError("");
     
     try {
-      const result = await authService.login(password, posthog.capture);
+      const result = await authService.validatePassword(password);
       
       if (result.success) {
         localStorage.setItem("app_password_authenticated", "true");
+        // Track successful login
+        posthog.capture('user_logged_in', { method: 'password' });
+        
         if (onAuthenticated) {
           onAuthenticated();
         }
       } else {
         setPasswordError(result.error || "Incorrect password");
+        // Track failed login
+        posthog.capture('login_failed', { method: 'password', error: result.error });
       }
     } catch (error) {
       console.error("Error validating password:", error);
