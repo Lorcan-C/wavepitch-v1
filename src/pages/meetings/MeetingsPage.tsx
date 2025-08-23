@@ -1,10 +1,10 @@
 import React from 'react';
 
-const PanelPage: React.FC = () => {
+const MeetingsPage: React.FC = () => {
   return (
     <div>
     </div>
   );
 };
 
-export default PanelPage;
+export default MeetingsPage;
