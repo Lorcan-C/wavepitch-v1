@@ -56,11 +56,13 @@ export function LandingPage() {
   
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background overflow-auto relative">
+      {/* Preload background image */}
+      <link rel="preload" as="image" href="/images/forest_v3.webp" />
       {/* Background image layer with opacity */}
       <div 
         className="absolute inset-0"
         style={{
-          backgroundImage: 'url(/images/forest_v2.webp)',
+          backgroundImage: 'url(/images/forest_v3.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.5
