@@ -23,7 +23,7 @@ function App() {
               <SignedIn>
                 <RequireApproval>
                   <Routes>
-                    <Route index element={<HubPage />} />
+                    <Route index element={<NewPage />} />
                     <Route path="new" element={<NewPage />} />
                     <Route path="panel" element={<PanelPage />} />
                     <Route path="hub" element={<HubPage />} />
