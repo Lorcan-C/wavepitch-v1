@@ -20,9 +20,9 @@ export function RequireApproval({ children }: RequireApprovalProps) {
   // Check if user is approved
   const isApproved = user?.publicMetadata?.approved === true
   
-  if (!isApproved) {
-    return <WaitlistPending />
-  }
+  // if (!isApproved) {
+  //   return <WaitlistPending />
+  // }
   
   return <>{children}</>
 }
