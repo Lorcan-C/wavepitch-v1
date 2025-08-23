@@ -60,7 +60,7 @@ export function LandingPage() {
       <div 
         className="absolute inset-0"
         style={{
-          backgroundImage: 'url(/images/background.png)',
+          backgroundImage: 'url(/images/forest_v2.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.5
