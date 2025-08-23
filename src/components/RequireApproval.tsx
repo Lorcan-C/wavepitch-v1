@@ -8,6 +8,9 @@ interface RequireApprovalProps {
 export function RequireApproval({ children }: RequireApprovalProps) {
   const { user, isLoaded } = useUser()
   
+  // Feature flag to temporarily disable approval requirement
+  const REQUIRE_APPROVAL = false
+  
   // Show loading while user data is being fetched
   if (!isLoaded) {
     return (
@@ -20,9 +23,9 @@ export function RequireApproval({ children }: RequireApprovalProps) {
   // Check if user is approved
   const isApproved = user?.publicMetadata?.approved === true
   
-  // if (!isApproved) {
-  //   return <WaitlistPending />
-  // }
+  if (REQUIRE_APPROVAL && !isApproved) {
+    return <WaitlistPending />
+  }
   
   return <>{children}</>
 }
