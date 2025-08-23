@@ -10,7 +10,7 @@ const NewPage: React.FC = () => {
     <div 
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
       style={{
-        backgroundImage: 'url(/images/pitchflow.webp)'
+        backgroundImage: 'url(/images/pitchflow_v2.webp)'
       }}
     >
       <div className="max-w-4xl w-full mx-auto px-4">
