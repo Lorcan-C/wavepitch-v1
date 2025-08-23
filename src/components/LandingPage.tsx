@@ -7,11 +7,7 @@ import { Loader2 } from "lucide-react";
 import { usePostHog } from 'posthog-js/react';
 import { SignInButton } from '@clerk/clerk-react';
 
-interface LandingPageProps {
-  onAuthenticated?: () => void;
-}
-
-export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
+export function LandingPage() {
   // State for waitlist
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -167,7 +163,7 @@ export function LandingPage({ onAuthenticated }: LandingPageProps = {}) {
                 </div>
                 
                 <div className="space-y-4">
-                  <SignInButton mode="modal" redirectUrl="/app">
+                  <SignInButton mode="modal" forceRedirectUrl="/app">
                     <Button className="w-full">
                       Sign In with Early Access
                     </Button>
