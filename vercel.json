@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://wavepitch-worker.lorcanclarke.workers.dev/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
     }
   ]
 }
