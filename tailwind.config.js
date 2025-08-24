@@ -50,6 +50,7 @@ export default {
       fontFamily: {
         lato: ["Lato", "sans-serif"],
         akzidenz: ["Akzidenz-Grotesk", "akzidenz-grotesk", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
     },
   },
