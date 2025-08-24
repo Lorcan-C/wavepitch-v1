@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScenarioSelectionCards } from '../../components/ScenarioSelectionCards';
+import { ResponsiveContainer } from '../../components/ResponsiveContainer';
 
 const NewPage: React.FC = () => {
   const handleScenarioSelect = (scenario: 'pitch' | 'planning' | 'focus') => {
@@ -13,11 +14,9 @@ const NewPage: React.FC = () => {
         backgroundImage: 'url(/images/pitchflow_v2.webp)'
       }}
     >
-      <div className="max-w-4xl w-full mx-auto px-4">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
-          <ScenarioSelectionCards onSelectScenario={handleScenarioSelect} />
-        </div>
-      </div>
+      <ResponsiveContainer size="narrow" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
+        <ScenarioSelectionCards onSelectScenario={handleScenarioSelect} />
+      </ResponsiveContainer>
     </div>
   );
 };

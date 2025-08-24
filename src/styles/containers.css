@@ -1,0 +1,56 @@
+/* ========================================
+   CENTRALIZED CONTAINER MANAGEMENT
+   CSS Custom Properties for responsive layouts
+   ======================================== */
+
+/* CSS Variables */
+:root {
+  /* Base Sizes */
+  --container-sm: 24rem;    /* 384px */
+  --container-md: 28rem;    /* 448px */
+  --container-lg: 42rem;    /* 672px */
+  --container-xl: 56rem;    /* 896px */
+  --container-2xl: 72rem;   /* 1152px */
+  
+  /* Semantic Aliases */
+  --container-narrow: var(--container-sm);    /* Forms, cards */
+  --container-content: var(--container-lg);   /* Content pages */
+  --container-wide: var(--container-xl);      /* Dashboards */
+  --container-full: var(--container-2xl);     /* Hero sections */
+}
+
+/* Size Utility Classes */
+.container-sm { max-width: var(--container-sm); }
+.container-md { max-width: var(--container-md); }
+.container-lg { max-width: var(--container-lg); }
+.container-xl { max-width: var(--container-xl); }
+.container-2xl { max-width: var(--container-2xl); }
+
+/* Semantic Utility Classes */
+.container-narrow { max-width: var(--container-narrow); }
+.container-content { max-width: var(--container-content); }
+.container-wide { max-width: var(--container-wide); }
+.container-full { max-width: var(--container-full); }
+
+/* Base Container Components */
+.container-base {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-responsive {
+  max-width: var(--container-sm);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Responsive Breakpoints */
+@media (min-width: 640px) {
+  .container-responsive { max-width: var(--container-lg); }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive { max-width: var(--container-xl); }
+}
