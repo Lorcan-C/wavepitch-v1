@@ -3,6 +3,7 @@ import { ArrowLeft, Mic } from 'lucide-react';
 import { scenarios } from '../config/scenarios';
 import FileDropzone from './FileDropzone';
 import { ResponsiveContainer } from './ResponsiveContainer';
+import { NewMeetingLoading } from './NewMeetingLoading';
 
 // Simple SpeechEnabledInput component (inline for now)
 interface SpeechEnabledInputProps {
@@ -71,6 +72,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Check if the scenario is active - if not, redirect back
   const scenario = scenarios.find(s => s.id === scenarioType);
@@ -102,6 +104,34 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
     }
   };
 
+  const handleContinue = async () => {
+    setIsLoading(true);
+    
+    try {
+      // TODO: Replace with actual backend API call
+      const scenarioData = {
+        type: scenarioType,
+        description: inputValue,
+        files: uploadedFiles,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('Processing scenario data:', scenarioData);
+      
+      // Mock backend processing delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // TODO: Navigate to next page when backend integration is complete
+      console.log('Scenario processing complete');
+      
+    } catch (error) {
+      console.error('Error processing scenario:', error);
+      // TODO: Add proper error handling
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div 
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
@@ -118,50 +148,57 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
         />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm">Back</span>
-            </button>
-            <div className="h-6 w-px bg-gray-300" />
-            <h1 className="text-2xl font-semibold text-gray-900">{getTitle()}</h1>
-          </div>
+          {isLoading ? (
+            <NewMeetingLoading message="Processing your scenario..." />
+          ) : (
+            <>
+              {/* Header */}
+              <div className="flex items-center gap-4 mb-6">
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-sm">Back</span>
+                </button>
+                <div className="h-6 w-px bg-gray-300" />
+                <h1 className="text-2xl font-semibold text-gray-900">{getTitle()}</h1>
+              </div>
 
-          {/* Input Container */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
-            <SpeechEnabledInput
-              value={inputValue}
-              onChange={setInputValue}
-              placeholder={getPlaceholder()}
-              variant="textarea"
-              rows={4}
-            />
-            
-            <FileDropzone
-              onFilesChange={setUploadedFiles}
-              className="mt-4"
-            />
-          </div>
+              {/* Input Container */}
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
+                <SpeechEnabledInput
+                  value={inputValue}
+                  onChange={setInputValue}
+                  placeholder={getPlaceholder()}
+                  variant="textarea"
+                  rows={4}
+                />
+                
+                <FileDropzone
+                  onFilesChange={setUploadedFiles}
+                  className="mt-4"
+                />
+              </div>
 
-          {/* Continue Button */}
-          <div className="flex justify-end mt-6">
-            <button
-              disabled={!inputValue.trim() && uploadedFiles.length === 0}
-              className={`
-                px-6 py-2 rounded-lg font-medium transition-colors
-                ${(inputValue.trim() || uploadedFiles.length > 0)
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }
-              `}
-            >
-              Continue
-            </button>
-          </div>
+              {/* Continue Button */}
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={handleContinue}
+                  disabled={!inputValue.trim() && uploadedFiles.length === 0}
+                  className={`
+                    px-6 py-2 rounded-lg font-medium transition-colors
+                    ${(inputValue.trim() || uploadedFiles.length > 0)
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  Continue
+                </button>
+              </div>
+            </>
+          )}
       </ResponsiveContainer>
     </div>
   );
