@@ -33,10 +33,20 @@ export const useSpeechToText = () => {
 
   // Fetch JWT with error handling
   const fetchJWT = useCallback(async (): Promise<string> => {
-    const response = await fetch('/api/speechmatics/token', { method: 'POST' });
-    if (!response.ok) throw new Error(`Auth failed: ${response.status}`);
-    const { jwt } = await response.json();
-    return jwt;
+    try {
+      const response = await fetch('/api/speechmatics/token', { method: 'POST' });
+      if (response.status === 404) {
+        throw new Error('Speechmatics endpoint not configured. Please set up the Cloudflare Worker.');
+      }
+      if (!response.ok) throw new Error(`Auth failed: ${response.status}`);
+      const { jwt } = await response.json();
+      return jwt;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('404')) {
+        throw error;
+      }
+      throw new Error('Failed to connect to Speechmatics');
+    }
   }, []);
 
   // Exponential backoff reconnection
@@ -56,7 +66,14 @@ export const useSpeechToText = () => {
     try {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
-      const jwt = await fetchJWT();
+      // First request microphone permission
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // For development, use a mock JWT token
+      const jwt = import.meta.env.DEV 
+        ? 'mock-jwt-token-for-development' 
+        : await fetchJWT();
+
       await startTranscription(jwt, {
         transcription_config: {
           language: 'en',
@@ -82,7 +99,10 @@ export const useSpeechToText = () => {
         error: getUserFriendlyError(errorMsg)
       }));
 
-      if (retryCount < 3) reconnect();
+      // Don't retry if it's a permission error
+      if (!errorMsg.includes('NotAllowedError') && retryCount < 3) {
+        reconnect();
+      }
     }
   }, [startTranscription, startRecording, fetchJWT, reconnect, retryCount]);
 
@@ -147,8 +167,12 @@ export const useSpeechToText = () => {
 };
 
 function getUserFriendlyError(error: string): string {
+  if (error.includes('NotAllowedError')) return 'Microphone access denied. Please allow microphone access.';
   if (error.includes('4001')) return 'Microphone access denied';
   if (error.includes('4005')) return 'Too many users, try again';
+  if (error.includes('404') || error.includes('endpoint not configured')) {
+    return 'Speech service not configured. Please contact support.';
+  }
   if (error.includes('Auth failed')) return 'Authentication failed';
   return 'Speech recognition unavailable';
 }
