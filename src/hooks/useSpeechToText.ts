@@ -34,7 +34,7 @@ export const useSpeechToText = () => {
   // Fetch JWT with error handling
   const fetchJWT = useCallback(async (): Promise<string> => {
     try {
-      const response = await fetch('/api/speechmatics/token', { method: 'POST' });
+      const response = await fetch('https://wavepitch-v1.lorcanclarke.workers.dev/api/speechmatics/token', { method: 'POST' });
       if (response.status === 404) {
         throw new Error('Speechmatics endpoint not configured. Please set up the Cloudflare Worker.');
       }
