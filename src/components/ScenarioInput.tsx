@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Mic } from 'lucide-react';
 import { scenarios } from '../config/scenarios';
 import FileDropzone from './FileDropzone';
+import { ResponsiveContainer } from './ResponsiveContainer';
 
 // Simple SpeechEnabledInput component (inline for now)
 interface SpeechEnabledInputProps {
@@ -116,8 +117,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
           className="h-16 md:h-24 w-auto"
         />
       </div>
-      <div className="w-full max-w-2xl mx-auto p-6">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
+      <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <button
@@ -162,8 +162,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
               Continue
             </button>
           </div>
-        </div>
-      </div>
+      </ResponsiveContainer>
     </div>
   );
 };
