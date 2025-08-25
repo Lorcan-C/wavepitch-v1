@@ -29,7 +29,7 @@ export default {
           type: 'rt',
           apiKey: env.SPEECHMATICS_API_KEY,
           ttl: 60,
-          client_ref: `wavepitch_${Date.now()}`
+          clientRef: `wavepitch_${Date.now()}`
         });
 
         return new Response(
