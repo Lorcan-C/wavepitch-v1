@@ -46,6 +46,14 @@
   padding: 0 1.5rem;
 }
 
+.container-adaptive {
+  width: 80%;
+  min-width: 20rem;     /* 320px */
+  max-width: 40rem;     /* 640px */
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
 /* Responsive Breakpoints */
 @media (min-width: 640px) {
   .container-responsive { max-width: var(--container-lg); }

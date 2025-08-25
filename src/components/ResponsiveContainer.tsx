@@ -3,7 +3,7 @@ import { cn } from '../lib/utils';
 
 interface ResponsiveContainerProps {
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'narrow' | 'content' | 'wide' | 'full' | 'responsive';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'narrow' | 'content' | 'wide' | 'full' | 'responsive' | 'adaptive';
   className?: string;
   as?: keyof JSX.IntrinsicElements;
 }

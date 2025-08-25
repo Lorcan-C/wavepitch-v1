@@ -14,7 +14,7 @@ const NewPage: React.FC = () => {
         backgroundImage: 'url(/images/pitchflow_v2.webp)'
       }}
     >
-      <ResponsiveContainer size="narrow" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
+      <ResponsiveContainer size="adaptive" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
         <ScenarioSelectionCards onSelectScenario={handleScenarioSelect} />
       </ResponsiveContainer>
     </div>

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 // Using inline error handling instead of toast notifications
 import { useDropzone } from 'react-dropzone';
 import { 
@@ -14,7 +13,6 @@ import {
   Upload,
   X,
   Loader2,
-  AlertCircle,
   Mic,
   MicOff
 } from "lucide-react";
@@ -73,12 +71,6 @@ interface EditableFieldProps {
   className?: string;
 }
 
-interface InlineMessage {
-  id: string;
-  message: string;
-  type: 'error' | 'success' | 'info';
-  timestamp: number;
-}
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -294,7 +286,7 @@ const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
 
   const toggleListening = () => {
     setIsListening(!isListening);
-    toast.info(isListening ? "Speech recognition stopped" : "Speech recognition started (mock)");
+    console.log(isListening ? "Speech recognition stopped" : "Speech recognition started (mock)");
   };
 
   const InputComponent = variant === 'textarea' ? 'textarea' : 'input';
@@ -351,29 +343,29 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
         setProcessingFile(file.name);
         
         if (file.size > FILE_SIZE_LIMIT) {
-          toast.error(`File ${file.name} is too large (max 10MB)`);
+          console.error(`File ${file.name} is too large (max 10MB)`);
           continue;
         }
 
         if (documents.find(doc => doc.filename === file.name)) {
-          toast.info(`Document ${file.name} is already uploaded`);
+          console.log(`Document ${file.name} is already uploaded`);
           continue;
         }
 
-        toast.info(`Processing ${file.name}...`);
+        console.log(`Processing ${file.name}...`);
         
         try {
           const document = await mockDocumentService.addDocument(file);
           onDocumentsChange([...documents, document]);
-          toast.success(`${file.name} processed successfully`);
+          console.log(`${file.name} processed successfully`);
         } catch (error) {
           console.error(`Error processing ${file.name}:`, error);
-          toast.error(`Failed to process ${file.name}`);
+          console.error(`Failed to process ${file.name}`);
         }
       }
     } catch (error) {
       console.error('Error processing documents:', error);
-      toast.error('Failed to process documents');
+      console.error('Failed to process documents');
     } finally {
       setIsProcessing(false);
       setProcessingFile(null);
@@ -390,7 +382,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
   const removeDocument = (documentId: string) => {
     mockDocumentService.removeDocument(documentId);
     onDocumentsChange(documents.filter(doc => doc.id !== documentId));
-    toast.info('Document removed');
+    console.log('Document removed');
   };
 
   return (
@@ -675,12 +667,12 @@ const ExpertManagementSection: React.FC<ExpertManagementSectionProps> = ({
                 
                 <DocumentUpload
                   documents={additionalDocuments}
-                  onDocumentsChange={onAdditionalDocumentsChange}
+                  onDocumentsChange={onAdditionalDocumentsChange || (() => {})}
                 />
                 
                 <SpeechEnabledInput
                   value={additionalContext}
-                  onChange={onAdditionalContextChange}
+                  onChange={onAdditionalContextChange || (() => {})}
                   placeholder="Any additional context, background information, or specific details..."
                   variant="textarea"
                   rows={3}
@@ -774,7 +766,7 @@ const useAgentGeneration = () => {
   ) => {
     const role = userRole || '';
     if (!topic.trim()) {
-      toast.error("Please provide meeting topic");
+      console.error("Please provide meeting topic");
       return;
     }
     
@@ -797,10 +789,10 @@ const useAgentGeneration = () => {
         setShowExpertGenerationProgress(false);
       }, UI_DELAYS.PROGRESS_HIDE);
       
-      toast.success(`Generated ${experts.length} expert advisors!`);
+      console.log(`Generated ${experts.length} expert advisors!`);
     } catch (error) {
       console.error('Error generating expert team:', error);
-      toast.error("Failed to generate expert team");
+      console.error("Failed to generate expert team");
       setShowExpertGenerationProgress(false);
     } finally {
       setIsGeneratingSuggestions(false);
@@ -918,7 +910,7 @@ export const NewMeetingDemo: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to generate descriptions:', error);
-      toast.error("Failed to generate meeting descriptions");
+      console.error("Failed to generate meeting descriptions");
     } finally {
       setIsGeneratingDescriptions(false);
     }
@@ -932,7 +924,7 @@ export const NewMeetingDemo: React.FC = () => {
       pitchInfo;
     
     if (!info.trim()) {
-      toast.error("Please provide pitch information or upload documents");
+      console.error("Please provide pitch information or upload documents");
       return;
     }
     
@@ -956,7 +948,7 @@ export const NewMeetingDemo: React.FC = () => {
 
   const handleComplete = () => {
     if (!meetingPurpose.trim()) {
-      toast.error("Please specify the meeting purpose");
+      console.error("Please specify the meeting purpose");
       return;
     }
     
@@ -972,7 +964,7 @@ export const NewMeetingDemo: React.FC = () => {
     };
     
     console.log('Meeting created:', meetingData);
-    toast.success("Meeting created successfully!");
+    console.log("Meeting created successfully!");
   };
 
   const canProceedFromStep1 = documents.length > 0 || pitchInfo.trim();
