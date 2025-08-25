@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mic } from 'lucide-react';
 import { scenarios } from '../config/scenarios';
 
 // Simple SpeechEnabledInput component (inline for now)
@@ -49,7 +49,7 @@ const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
           ${isListening ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
         `}
       >
-        🎤
+        <Mic className="h-4 w-4" />
       </button>
     </div>
   );
