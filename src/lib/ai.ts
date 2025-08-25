@@ -46,7 +46,7 @@ export async function generateAISpeech(
     });
 
     // Step 3: Access audio data as per Vercel docs
-    return audio.audio.uint8Array;
+    return audio.audioData;
   } catch (error: unknown) {
     // Step 3: Error handling as per Vercel docs
     console.log('Speech generation error:', error);
