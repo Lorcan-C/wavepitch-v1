@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ScenarioSelectionCards } from '../../components/ScenarioSelectionCards';
 import { ScenarioInput } from '../../components/ScenarioInput';
 import { ResponsiveContainer } from '../../components/ResponsiveContainer';
+import { Logo } from '../../components/Logo';
 
 type ScenarioType = 'pitch' | 'planning' | 'focus';
 
@@ -37,11 +38,7 @@ const NewPage: React.FC = () => {
     >
       {/* Logo */}
       <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <img 
-          src="/images/onboardinglogo_4.png" 
-          alt="Logo" 
-          className="h-12 md:h-16 w-auto"
-        />
+        <Logo size="md" />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
         <ScenarioSelectionCards onSelectScenario={handleScenarioSelect} />

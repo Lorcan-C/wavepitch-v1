@@ -1,5 +1,6 @@
 import { SignOutButton, useUser } from '@clerk/clerk-react'
 import { Button } from './ui/button'
+import { Logo } from './Logo'
 
 export function WaitlistPending() {
   const { user } = useUser()
@@ -9,11 +10,7 @@ export function WaitlistPending() {
       <div className="max-w-md w-full mx-auto text-center space-y-6">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img 
-            src="/images/onboardinglogo_4.png" 
-            alt="Logo" 
-            className="h-16 w-auto"
-          />
+          <Logo size="lg" />
         </div>
 
         <div className="space-y-4">

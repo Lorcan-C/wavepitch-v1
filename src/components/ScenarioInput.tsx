@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Mic } from 'lucide-react';
 import { scenarios } from '../config/scenarios';
 import FileDropzone from './FileDropzone';
 import { ResponsiveContainer } from './ResponsiveContainer';
 import { NewMeetingLoading } from './NewMeetingLoading';
+import { useSpeechToText } from '../hooks/useSpeechToText';
+import { Logo } from './Logo';
 
 // Simple SpeechEnabledInput component (inline for now)
 interface SpeechEnabledInputProps {
@@ -23,12 +25,17 @@ const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
   rows = 4,
   className = ''
 }) => {
-  const [isListening, setIsListening] = useState(false);
+  const { isListening, isConnecting, displayText, error, toggleListening } = useSpeechToText();
 
-  const toggleListening = () => {
-    setIsListening(!isListening);
-    console.log(isListening ? "Speech recognition stopped" : "Speech recognition started (mock)");
-  };
+  // Update parent component when speech text changes
+  useEffect(() => {
+    if (displayText) {
+      // Merge existing typed text with speech text
+      const currentTypedText = value.replace(displayText, ''); // Remove any existing speech text
+      const newValue = currentTypedText + displayText;
+      onChange(newValue);
+    }
+  }, [displayText, onChange]);
 
   const InputComponent = variant === 'textarea' ? 'textarea' : 'input';
 
@@ -41,19 +48,33 @@ const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
         rows={variant === 'textarea' ? rows : undefined}
         className={`
           w-full px-3 py-2 pr-12 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-          ${isListening ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
+          ${(isListening || isConnecting) ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
         `}
       />
       <button
         type="button"
         onClick={toggleListening}
+        disabled={isConnecting}
         className={`
           absolute right-2 top-2 p-2 rounded-full transition-colors
-          ${isListening ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+          ${isListening ? 'bg-red-100 text-red-600' : 
+            isConnecting ? 'bg-yellow-100 text-yellow-600' :
+            'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+          ${isConnecting ? 'cursor-not-allowed opacity-50' : ''}
         `}
+        title={
+          isConnecting ? 'Connecting...' :
+          isListening ? 'Click to stop recording' :
+          'Click to start recording'
+        }
       >
         <Mic className="h-4 w-4" />
       </button>
+      {error && (
+        <div className="absolute top-full left-0 mt-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded border">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
@@ -141,11 +162,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
     >
       {/* Logo */}
       <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <img 
-          src="/images/onboardinglogo_4.png" 
-          alt="Logo" 
-          className="h-12 md:h-16 w-auto"
-        />
+        <Logo size="md" />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
           {isLoading ? (

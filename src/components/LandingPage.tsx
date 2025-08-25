@@ -6,6 +6,7 @@ import { RotatingWords } from "./RotatingWords";
 import { Loader2 } from "lucide-react";
 import { usePostHog } from 'posthog-js/react';
 import { SignInButton } from '@clerk/clerk-react';
+import { Logo } from "./Logo";
 
 export function LandingPage() {
   // State for waitlist
@@ -71,13 +72,7 @@ export function LandingPage() {
       
       {/* Logo at the very top */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <img 
-          src="/images/onboardinglogo_4.png" 
-          alt="Logo" 
-          className="h-24 w-auto"
-          loading="eager"
-          fetchPriority="high"
-        />
+        <Logo size="xl" priority="high" />
       </div>
       
       {/* Content layer with full opacity */}
