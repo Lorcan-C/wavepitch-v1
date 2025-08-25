@@ -1,6 +1,5 @@
 import { openai } from '@ai-sdk/openai';
 import {
-  AI_NoAudioGeneratedError,
   generateText as aiGenerateText,
   streamText as aiStreamText,
   experimental_generateSpeech as generateSpeech,
@@ -47,16 +46,14 @@ export async function generateAISpeech(
     });
 
     // Step 3: Access audio data as per Vercel docs
-    return audio.audioData;
-  } catch (error) {
+    return audio.audio.uint8Array;
+  } catch (error: unknown) {
     // Step 3: Error handling as per Vercel docs
-    if (AI_NoAudioGeneratedError.isInstance(error)) {
-      console.log('AI_NoAudioGeneratedError');
-      console.log('Cause:', error.cause);
-      console.log('Responses:', error.responses);
-      throw new Error(`Speech generation failed: ${error.cause}`);
+    console.log('Speech generation error:', error);
+    if (error instanceof Error) {
+      throw new Error(`Speech generation failed: ${error.message}`);
     }
-    throw error;
+    throw new Error('Speech generation failed: Unknown error');
   }
 }
 
@@ -64,7 +61,7 @@ export async function generateAISpeech(
  * Helper function to play audio in browser - Step 4: Usage
  */
 export function playAudioData(audioData: Uint8Array): void {
-  const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
+  const audioBlob = new Blob([new Uint8Array(audioData)], { type: 'audio/mpeg' });
   const audioUrl = URL.createObjectURL(audioBlob);
   const audioElement = new Audio(audioUrl);
   audioElement.play();
