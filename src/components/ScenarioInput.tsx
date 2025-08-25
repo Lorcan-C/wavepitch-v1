@@ -87,14 +87,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
   }
 
   const getTitle = () => {
-    switch (scenarioType) {
-      case 'pitch':
-        return 'Pitch to a Client';
-      case 'focus':
-        return 'Run a Focus Group';
-      default:
-        return 'Plan Work with Your Team';
-    }
+    return scenario?.title || 'Custom scenario';
   };
 
   const getPlaceholder = () => {
