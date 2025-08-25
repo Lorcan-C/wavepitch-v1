@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { SignInButton } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
+
+import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { Loader2 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 
@@ -20,6 +22,15 @@ export function LandingPage() {
   const [activeTab, setActiveTab] = useState<string>('waitlist');
 
   const posthog = usePostHog();
+  const navigate = useNavigate();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  // Redirect signed-in users to the app
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      navigate('/app');
+    }
+  }, [isLoaded, isSignedIn, navigate]);
 
   // This is the list of rotating words that can be edited - same as Index page
   const actionWords = [
