@@ -57,7 +57,7 @@ export function LandingPage() {
 
       setIsSubmitted(true);
       setEmail('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Waitlist signup error:', error);
       alert('Failed to join waitlist. Please try again.');
     } finally {

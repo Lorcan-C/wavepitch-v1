@@ -12,7 +12,7 @@ export async function getSpeechmatticsToken(): Promise<string> {
     if (!response.ok) throw new Error(`Auth failed: ${response.status}`);
     const { jwt } = await response.json();
     return jwt;
-  } catch (error) {
+  } catch {
     throw new Error('Failed to connect to Speechmatics');
   }
 }

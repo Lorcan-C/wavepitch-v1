@@ -36,7 +36,7 @@ export default {
           status: 200,
           headers: corsHeaders,
         });
-      } catch (error) {
+      } catch {
         return new Response(JSON.stringify({ error: 'JWT generation failed' }), {
           status: 500,
           headers: corsHeaders,

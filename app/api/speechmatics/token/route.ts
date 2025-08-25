@@ -2,7 +2,7 @@ import { createSpeechmaticsJWT } from '@speechmatics/auth';
 
 export const runtime = 'edge';
 
-export async function POST(request: Request) {
+export async function POST() {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',

@@ -45,7 +45,9 @@ const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
     <div className={`relative ${className}`}>
       <InputComponent
         value={value}
-        onChange={(e: any) => onChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+          onChange(e.target.value)
+        }
         placeholder={placeholder}
         rows={variant === 'textarea' ? rows : undefined}
         className={`

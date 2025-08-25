@@ -121,7 +121,7 @@ export const useSpeechToText = () => {
 
   // Handle transcription events
   useEffect(() => {
-    const handleTranscription = (event: any) => {
+    const handleTranscription = (event: CustomEvent) => {
       if (!isMountedRef.current) return;
 
       const transcript = event.detail?.transcript || '';
@@ -140,9 +140,12 @@ export const useSpeechToText = () => {
       });
     };
 
-    window.addEventListener('speechmatics:transcription' as any, handleTranscription);
+    window.addEventListener('speechmatics:transcription', handleTranscription as EventListener);
     return () =>
-      window.removeEventListener('speechmatics:transcription' as any, handleTranscription);
+      window.removeEventListener(
+        'speechmatics:transcription',
+        handleTranscription as EventListener,
+      );
   }, []);
 
   // Cleanup on unmount/page unload

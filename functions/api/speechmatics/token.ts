@@ -1,6 +1,12 @@
 import { createSpeechmaticsJWT } from '@speechmatics/auth';
 
-export async function onRequestPost(context: any) {
+interface CloudflareContext {
+  env: {
+    SPEECHMATICS_API_KEY?: string;
+  };
+}
+
+export async function onRequestPost(context: CloudflareContext) {
   try {
     // Get API key from environment variables
     const apiKey = context.env.SPEECHMATICS_API_KEY;
