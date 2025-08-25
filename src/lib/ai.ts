@@ -1,5 +1,10 @@
 import { openai } from '@ai-sdk/openai';
-import { generateText, streamText } from 'ai';
+import { 
+  generateText as aiGenerateText, 
+  streamText as aiStreamText, 
+  experimental_generateSpeech as generateSpeech,
+  AI_NoAudioGeneratedError 
+} from 'ai';
 
 // Provider switcher - change this line to switch providers
 const model = openai('gpt-4');
@@ -8,7 +13,7 @@ const model = openai('gpt-4');
  * Generate text using AI SDK Core
  */
 export async function generateText(prompt: string): Promise<string> {
-  const { text } = await generateText({
+  const { text } = await aiGenerateText({
     model,
     prompt,
   });
@@ -19,9 +24,49 @@ export async function generateText(prompt: string): Promise<string> {
  * Stream text using AI SDK Core
  */
 export async function streamText(prompt: string) {
-  const { textStream } = await streamText({
+  const { textStream } = await aiStreamText({
     model,
     prompt,
   });
   return textStream;
+}
+
+/**
+ * Generate speech using AI SDK Core - Following Vercel guidance
+ */
+export async function generateAISpeech(
+  text: string, 
+  voice: 'alloy' | 'echo' | 'fable' | 'nova' | 'onyx' | 'shimmer' = 'nova'
+): Promise<Uint8Array> {
+  try {
+    // Step 2: Basic implementation
+    const audio = await generateSpeech({
+      model: openai.speech('tts-1'),
+      text,
+      voice,
+    });
+    
+    // Step 3: Access audio data as per Vercel docs
+    return audio.audioData;
+    
+  } catch (error) {
+    // Step 3: Error handling as per Vercel docs
+    if (AI_NoAudioGeneratedError.isInstance(error)) {
+      console.log('AI_NoAudioGeneratedError');
+      console.log('Cause:', error.cause);
+      console.log('Responses:', error.responses);
+      throw new Error(`Speech generation failed: ${error.cause}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Helper function to play audio in browser - Step 4: Usage
+ */
+export function playAudioData(audioData: Uint8Array): void {
+  const audioBlob = new Blob([audioData], { type: 'audio/mpeg' });
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audioElement = new Audio(audioUrl);
+  audioElement.play();
 }
