@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Mic } from 'lucide-react';
 import { scenarios } from '../config/scenarios';
+import FileDropzone from './FileDropzone';
 
 // Simple SpeechEnabledInput component (inline for now)
 interface SpeechEnabledInputProps {
@@ -68,6 +69,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
   onBack 
 }) => {
   const [inputValue, setInputValue] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   // Check if the scenario is active - if not, redirect back
   const scenario = scenarios.find(s => s.id === scenarioType);
@@ -129,7 +131,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
           </div>
 
           {/* Input Container */}
-          <div className="space-y-2 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
             <SpeechEnabledInput
               value={inputValue}
               onChange={setInputValue}
@@ -137,15 +139,20 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
               variant="textarea"
               rows={6}
             />
+            
+            <FileDropzone
+              onFilesChange={setUploadedFiles}
+              className="mt-4"
+            />
           </div>
 
           {/* Continue Button */}
           <div className="flex justify-end mt-6">
             <button
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() && uploadedFiles.length === 0}
               className={`
                 px-6 py-2 rounded-lg font-medium transition-colors
-                ${inputValue.trim() 
+                ${(inputValue.trim() || uploadedFiles.length > 0)
                   ? 'bg-blue-600 text-white hover:bg-blue-700' 
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }
