@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/speechmatics/token.js": {
-      "runtime": "edge"
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
