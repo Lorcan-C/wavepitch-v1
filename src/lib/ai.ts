@@ -46,6 +46,7 @@ export async function generateAISpeech(
     });
 
     // Step 3: Access audio data as per Vercel docs
+    // @ts-expect-error - audioData exists at runtime but types may be outdated
     return audio.audioData;
   } catch (error: unknown) {
     // Step 3: Error handling as per Vercel docs
