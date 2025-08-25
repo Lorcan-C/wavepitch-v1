@@ -69,10 +69,8 @@ export const useSpeechToText = () => {
       // First request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // For development, use a mock JWT token
-      const jwt = import.meta.env.DEV 
-        ? 'mock-jwt-token-for-development' 
-        : await fetchJWT();
+      // Always fetch real JWT token from Cloudflare Worker
+      const jwt = await fetchJWT();
 
       await startTranscription(jwt, {
         transcription_config: {
