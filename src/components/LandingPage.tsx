@@ -168,7 +168,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <SignInButton mode="modal" forceRedirectUrl="/app/new">
+                  <SignInButton mode="modal">
                     <Button className="w-full">Sign In with Early Access</Button>
                   </SignInButton>
 
