@@ -171,8 +171,15 @@ export const useSpeechToText = () => {
 function getUserFriendlyError(error: string): string {
   if (error.includes('NotAllowedError'))
     return 'Microphone access denied. Please allow microphone access.';
-  if (error.includes('4001')) return 'Microphone access denied';
-  if (error.includes('4005')) return 'Too many users, try again';
+
+  // Speechmatics WebSocket Error Codes
+  if (error.includes('4001')) return 'Authentication failed - invalid API key';
+  if (error.includes('4003')) return 'API key expired - please contact support';
+  if (error.includes('4004')) return 'Unsupported language requested';
+  if (error.includes('4005')) return 'Too many concurrent users - try again shortly';
+  if (error.includes('4006')) return 'Usage quota exceeded - try again later';
+
+  // Generic errors
   if (error.includes('404') || error.includes('endpoint not configured')) {
     return 'Speech service not configured. Please contact support.';
   }
