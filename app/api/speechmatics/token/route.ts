@@ -12,31 +12,31 @@ export async function POST(request: Request) {
 
   try {
     const apiKey = process.env.SPEECHMATICS_API_KEY;
-    
+
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: corsHeaders }
-      );
+      return new Response(JSON.stringify({ error: 'API key not configured' }), {
+        status: 500,
+        headers: corsHeaders,
+      });
     }
 
     const jwt = createSpeechmaticsJWT({
       type: 'rt',
       apiKey: apiKey,
       ttl: 60,
-      clientRef: `wavepitch_${Date.now()}`
+      clientRef: `wavepitch_${Date.now()}`,
     });
 
-    return new Response(
-      JSON.stringify({ jwt, expires_in: 60 }),
-      { status: 200, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ jwt, expires_in: 60 }), {
+      status: 200,
+      headers: corsHeaders,
+    });
   } catch (error) {
     console.error('JWT generation failed:', error);
-    return new Response(
-      JSON.stringify({ error: 'JWT generation failed' }),
-      { status: 500, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ error: 'JWT generation failed' }), {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 }
 

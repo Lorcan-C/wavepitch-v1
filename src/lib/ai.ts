@@ -1,9 +1,9 @@
 import { openai } from '@ai-sdk/openai';
-import { 
-  generateText as aiGenerateText, 
-  streamText as aiStreamText, 
+import {
+  AI_NoAudioGeneratedError,
+  generateText as aiGenerateText,
+  streamText as aiStreamText,
   experimental_generateSpeech as generateSpeech,
-  AI_NoAudioGeneratedError 
 } from 'ai';
 
 // Provider switcher - change this line to switch providers
@@ -35,8 +35,8 @@ export async function streamText(prompt: string) {
  * Generate speech using AI SDK Core - Following Vercel guidance
  */
 export async function generateAISpeech(
-  text: string, 
-  voice: 'alloy' | 'echo' | 'fable' | 'nova' | 'onyx' | 'shimmer' = 'nova'
+  text: string,
+  voice: 'alloy' | 'echo' | 'fable' | 'nova' | 'onyx' | 'shimmer' = 'nova',
 ): Promise<Uint8Array> {
   try {
     // Step 2: Basic implementation
@@ -45,10 +45,9 @@ export async function generateAISpeech(
       text,
       voice,
     });
-    
+
     // Step 3: Access audio data as per Vercel docs
     return audio.audioData;
-    
   } catch (error) {
     // Step 3: Error handling as per Vercel docs
     if (AI_NoAudioGeneratedError.isInstance(error)) {

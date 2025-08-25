@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ScenarioSelectionCards } from '../../components/ScenarioSelectionCards';
-import { ScenarioInput } from '../../components/ScenarioInput';
-import { ResponsiveContainer } from '../../components/ResponsiveContainer';
+
 import { Logo } from '../../components/Logo';
+import { ResponsiveContainer } from '../../components/ResponsiveContainer';
+import { ScenarioInput } from '../../components/ScenarioInput';
+import { ScenarioSelectionCards } from '../../components/ScenarioSelectionCards';
 
 type ScenarioType = 'pitch' | 'planning' | 'focus';
 
@@ -20,20 +21,15 @@ const NewPage: React.FC = () => {
 
   // If a scenario is selected, show the ScenarioInput component
   if (selectedScenario) {
-    return (
-      <ScenarioInput 
-        scenarioType={selectedScenario} 
-        onBack={handleBack} 
-      />
-    );
+    return <ScenarioInput scenarioType={selectedScenario} onBack={handleBack} />;
   }
 
   // Otherwise show the scenario selection
   return (
-    <div 
+    <div
       className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
       style={{
-        backgroundImage: 'url(/images/pitchflow_v2.webp)'
+        backgroundImage: 'url(/images/pitchflow_v2.webp)',
       }}
     >
       {/* Logo */}

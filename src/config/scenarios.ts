@@ -14,7 +14,7 @@ export const scenarios: Scenario[] = [
     description: 'Gather feedback on a concept, product, or prototype with a guided panel',
     isActive: true,
     participantCount: 3,
-    accentColor: 'bg-primary'
+    accentColor: 'bg-primary',
   },
   {
     id: 'pitch',
@@ -22,7 +22,7 @@ export const scenarios: Scenario[] = [
     description: 'Get feedback on your ideas, proposal, or presentation before the real thing',
     isActive: true,
     participantCount: 3,
-    accentColor: 'bg-primary'
+    accentColor: 'bg-primary',
   },
   {
     id: 'planning',
@@ -30,6 +30,6 @@ export const scenarios: Scenario[] = [
     description: 'Plan ahead and brainstorm solutions with colleagues and experts in your field',
     isActive: false,
     participantCount: 3,
-    accentColor: 'bg-gray-300'
-  }
+    accentColor: 'bg-gray-300',
+  },
 ];

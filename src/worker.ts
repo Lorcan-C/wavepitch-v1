@@ -19,34 +19,34 @@ export default {
     if (url.pathname === '/api/speechmatics/token' && request.method === 'POST') {
       try {
         if (!env.SPEECHMATICS_API_KEY) {
-          return new Response(
-            JSON.stringify({ error: 'API key not configured' }),
-            { status: 500, headers: corsHeaders }
-          );
+          return new Response(JSON.stringify({ error: 'API key not configured' }), {
+            status: 500,
+            headers: corsHeaders,
+          });
         }
 
         const jwt = createSpeechmaticsJWT({
           type: 'rt',
           apiKey: env.SPEECHMATICS_API_KEY,
           ttl: 60,
-          clientRef: `wavepitch_${Date.now()}`
+          clientRef: `wavepitch_${Date.now()}`,
         });
 
-        return new Response(
-          JSON.stringify({ jwt, expires_in: 60 }),
-          { status: 200, headers: corsHeaders }
-        );
+        return new Response(JSON.stringify({ jwt, expires_in: 60 }), {
+          status: 200,
+          headers: corsHeaders,
+        });
       } catch (error) {
-        return new Response(
-          JSON.stringify({ error: 'JWT generation failed' }),
-          { status: 500, headers: corsHeaders }
-        );
+        return new Response(JSON.stringify({ error: 'JWT generation failed' }), {
+          status: 500,
+          headers: corsHeaders,
+        });
       }
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Not found' }),
-      { status: 404, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: corsHeaders,
+    });
   },
 };

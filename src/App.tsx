@@ -1,13 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
-import { LandingPage } from './components/LandingPage'
-import { RequireApproval } from './components/RequireApproval'
-import { SpeechProviders } from './components/providers/SpeechProviders'
-import NewPage from './pages/new/NewPage'
-import MeetingsPage from './pages/meetings/MeetingsPage'
-import HubPage from './pages/hub/HubPage'
-import SettingsPage from './pages/settings/SettingsPage'
-import './styles/index.css'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+
+import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react';
+
+import { LandingPage } from './components/LandingPage';
+import { RequireApproval } from './components/RequireApproval';
+import { SpeechProviders } from './components/providers/SpeechProviders';
+import HubPage from './pages/hub/HubPage';
+import MeetingsPage from './pages/meetings/MeetingsPage';
+import NewPage from './pages/new/NewPage';
+import SettingsPage from './pages/settings/SettingsPage';
+import './styles/index.css';
 
 function App() {
   return (
@@ -16,10 +18,10 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
-          
+
           {/* Protected app routes */}
-          <Route 
-            path="/app/*" 
+          <Route
+            path="/app/*"
             element={
               <>
                 <SignedIn>
@@ -39,7 +41,7 @@ function App() {
               </>
             }
           />
-          
+
           {/* Legacy routes - redirect to app */}
           <Route path="/demo" element={<Navigate to="/app" replace />} />
           <Route path="/new" element={<Navigate to="/app/new" replace />} />
@@ -47,12 +49,12 @@ function App() {
           <Route path="/meetings" element={<Navigate to="/app/meetings" replace />} />
           <Route path="/hub" element={<Navigate to="/app/hub" replace />} />
           <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
-          
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SpeechProviders>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

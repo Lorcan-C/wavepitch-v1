@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface RotatingWordsProps {
   words: string[];
@@ -8,12 +8,12 @@ interface RotatingWordsProps {
   emphasisFactor?: number;
 }
 
-export const RotatingWords = ({ 
-  words, 
-  className = "", 
+export const RotatingWords = ({
+  words,
+  className = '',
   interval = 2000,
   emphasizedWord,
-  emphasisFactor = 1
+  emphasisFactor = 1,
 }: RotatingWordsProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -39,18 +39,18 @@ export const RotatingWords = ({
   // Handle special words - but ensure rotation continues after a pause
   useEffect(() => {
     const currentWord = words[currentIndex].toLowerCase();
-    
+
     // If we encounter our emphasized word, pause briefly
     if (emphasizedWord && currentWord === emphasizedWord.toLowerCase()) {
       setIsPaused(true);
-      
+
       // Always unpause after the specified duration (default 4s or interval * emphasisFactor)
       const pauseDuration = interval * (emphasisFactor || 2);
       pauseTimeoutRef.current = setTimeout(() => {
         setIsPaused(false);
       }, pauseDuration);
     }
-    
+
     return () => {
       if (pauseTimeoutRef.current) {
         clearTimeout(pauseTimeoutRef.current);
@@ -59,15 +59,18 @@ export const RotatingWords = ({
   }, [currentIndex, words, emphasizedWord, emphasisFactor, interval]);
 
   // Find the longest word to set container width
-  const longestWord = words.reduce((a, b) => a.length > b.length ? a : b);
+  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b));
 
   return (
-    <span className={`inline-block relative ${className}`} style={{ minWidth: `${longestWord.length}ch` }}>
+    <span
+      className={`inline-block relative ${className}`}
+      style={{ minWidth: `${longestWord.length}ch` }}
+    >
       {words.map((word, index) => (
         <span
           key={index}
           className={`inline-block transition-opacity duration-500 ${
-            index === currentIndex ? "opacity-100" : "opacity-0 absolute top-0 left-0"
+            index === currentIndex ? 'opacity-100' : 'opacity-0 absolute top-0 left-0'
           }`}
         >
           {word}

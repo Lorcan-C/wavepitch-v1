@@ -1,16 +1,18 @@
 # Setting up Clerk Authentication
 
 ## Frontend Setup
+
 1. Get your Clerk publishable key from https://dashboard.clerk.com
 2. Add it directly to `src/main.tsx`:
    ```javascript
-   const CLERK_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE'
+   const CLERK_PUBLISHABLE_KEY = 'pk_test_YOUR_KEY_HERE';
    ```
    This key is safe to commit to your repository.
 
 ## Cloudflare Worker Setup (for existing password auth)
 
 ### Prerequisites
+
 1. Install Wrangler CLI: `brew install cloudflare-wrangler`
 2. Login to Cloudflare: `wrangler login`
 
@@ -40,6 +42,7 @@ wrangler deploy
 ## API Endpoints
 
 Your Cloudflare Worker now provides:
+
 - `GET /api/clerk/config` - Returns the publishable key to the frontend
 - `POST /api/clerk/verify-session` - Verifies Clerk sessions server-side
 

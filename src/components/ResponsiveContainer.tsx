@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { cn } from '../lib/utils';
 
 interface ResponsiveContainerProps {
@@ -12,13 +13,9 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   children,
   size = 'responsive',
   className = '',
-  as: Component = 'div'
+  as: Component = 'div',
 }) => {
   const sizeClass = `container-${size}`;
-  
-  return (
-    <Component className={cn(sizeClass, 'container-base', className)}>
-      {children}
-    </Component>
-  );
+
+  return <Component className={cn(sizeClass, 'container-base', className)}>{children}</Component>;
 };

@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { usePCMAudioListener, usePCMAudioRecorder } from '@speechmatics/browser-audio-input-react';
 import { useRealtimeTranscription } from '@speechmatics/real-time-client-react';
-import { usePCMAudioRecorder, usePCMAudioListener } from '@speechmatics/browser-audio-input-react';
 
 interface SpeechState {
   isListening: boolean;
@@ -16,7 +17,7 @@ export const useSpeechToText = () => {
     isConnecting: false,
     error: null,
     finalText: '',
-    partialText: ''
+    partialText: '',
   });
 
   const [retryCount, setRetryCount] = useState(0);
@@ -24,8 +25,8 @@ export const useSpeechToText = () => {
 
   const { startTranscription, stopTranscription, sendAudio } = useRealtimeTranscription();
   const { startRecording, stopRecording } = usePCMAudioRecorder(
-    "/js/pcm-audio-worklet.min.js",
-    new AudioContext()
+    '/js/pcm-audio-worklet.min.js',
+    new AudioContext(),
   );
 
   // Auto-send audio to Speechmatics
@@ -53,10 +54,10 @@ export const useSpeechToText = () => {
   const reconnect = useCallback(async () => {
     if (retryCount >= 3) return;
     const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-    
+
     setTimeout(async () => {
       if (isMountedRef.current) {
-        setRetryCount(prev => prev + 1);
+        setRetryCount((prev) => prev + 1);
         startListening();
       }
     }, delay);
@@ -64,7 +65,7 @@ export const useSpeechToText = () => {
 
   const startListening = useCallback(async () => {
     try {
-      setState(prev => ({ ...prev, isConnecting: true, error: null }));
+      setState((prev) => ({ ...prev, isConnecting: true, error: null }));
 
       // First request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -76,25 +77,24 @@ export const useSpeechToText = () => {
         transcription_config: {
           language: 'en',
           enable_partials: true,
-          max_delay: 2.0
-        }
+          max_delay: 2.0,
+        },
       });
       await startRecording({
         recordingOptions: {
-          sampleRate: 16000
-        }
+          sampleRate: 16000,
+        },
       });
 
-      setState(prev => ({ ...prev, isListening: true, isConnecting: false }));
+      setState((prev) => ({ ...prev, isListening: true, isConnecting: false }));
       setRetryCount(0);
-
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Recognition failed';
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isListening: false,
         isConnecting: false,
-        error: getUserFriendlyError(errorMsg)
+        error: getUserFriendlyError(errorMsg),
       }));
 
       // Don't retry if it's a permission error
@@ -107,7 +107,7 @@ export const useSpeechToText = () => {
   const stopListening = useCallback(async () => {
     await stopRecording();
     await stopTranscription();
-    setState(prev => ({ ...prev, isListening: false, isConnecting: false }));
+    setState((prev) => ({ ...prev, isListening: false, isConnecting: false }));
     setRetryCount(0);
   }, [stopRecording, stopTranscription]);
 
@@ -127,12 +127,12 @@ export const useSpeechToText = () => {
       const transcript = event.detail?.transcript || '';
       const isFinal = event.detail?.is_final || false;
 
-      setState(prev => {
+      setState((prev) => {
         if (isFinal) {
           return {
             ...prev,
             finalText: prev.finalText + transcript + ' ',
-            partialText: ''
+            partialText: '',
           };
         } else {
           return { ...prev, partialText: transcript };
@@ -141,14 +141,15 @@ export const useSpeechToText = () => {
     };
 
     window.addEventListener('speechmatics:transcription' as any, handleTranscription);
-    return () => window.removeEventListener('speechmatics:transcription' as any, handleTranscription);
+    return () =>
+      window.removeEventListener('speechmatics:transcription' as any, handleTranscription);
   }, []);
 
   // Cleanup on unmount/page unload
   useEffect(() => {
     const cleanup = () => stopListening();
     window.addEventListener('beforeunload', cleanup);
-    
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('beforeunload', cleanup);
@@ -160,12 +161,13 @@ export const useSpeechToText = () => {
     ...state,
     displayText: state.finalText + state.partialText,
     toggleListening,
-    clearTranscript: () => setState(prev => ({ ...prev, finalText: '', partialText: '' }))
+    clearTranscript: () => setState((prev) => ({ ...prev, finalText: '', partialText: '' })),
   };
 };
 
 function getUserFriendlyError(error: string): string {
-  if (error.includes('NotAllowedError')) return 'Microphone access denied. Please allow microphone access.';
+  if (error.includes('NotAllowedError'))
+    return 'Microphone access denied. Please allow microphone access.';
   if (error.includes('4001')) return 'Microphone access denied';
   if (error.includes('4005')) return 'Too many users, try again';
   if (error.includes('404') || error.includes('endpoint not configured')) {

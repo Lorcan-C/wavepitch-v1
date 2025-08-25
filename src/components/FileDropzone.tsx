@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
-import { Upload, FileText } from 'lucide-react';
+
+import { FileText, Upload } from 'lucide-react';
 
 interface FileDropzoneProps {
   onFilesChange?: (files: File[]) => void;
   className?: string;
 }
 
-export const FileDropzone: React.FC<FileDropzoneProps> = ({ 
-  onFilesChange,
-  className = '' 
-}) => {
+export const FileDropzone: React.FC<FileDropzoneProps> = ({ onFilesChange, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const droppedFiles = Array.from(e.dataTransfer.files);
     const allFiles = [...files, ...droppedFiles];
     setFiles(allFiles);

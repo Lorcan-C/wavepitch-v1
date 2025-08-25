@@ -49,13 +49,13 @@ Replace the placeholder waitlist submission in `src/components/LandingPage.tsx` 
 
 ```typescript
 // Replace this simulation
-await new Promise(resolve => setTimeout(resolve, 2000));
+await new Promise((resolve) => setTimeout(resolve, 2000));
 
 // With your actual API call
 const response = await fetch('/api/waitlist', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email })
+  body: JSON.stringify({ email }),
 });
 ```
 
@@ -64,7 +64,15 @@ const response = await fetch('/api/waitlist', {
 Edit the `actionWords` array in `src/components/LandingPage.tsx`:
 
 ```typescript
-const actionWords = ["explore?", "work through?", "discover?", "chat about?", "discuss?", "problem solve?", "brainstorm?"];
+const actionWords = [
+  'explore?',
+  'work through?',
+  'discover?',
+  'chat about?',
+  'discuss?',
+  'problem solve?',
+  'brainstorm?',
+];
 ```
 
 ### Update Background Image

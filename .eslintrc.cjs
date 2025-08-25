@@ -6,7 +6,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: false
+    project: false,
   },
   plugins: [
     '@typescript-eslint',
@@ -18,7 +18,7 @@ module.exports = {
     'unicorn',
     'jsonc',
     'yml',
-    'prettier'
+    'prettier',
   ],
   extends: [
     'eslint:recommended',
@@ -31,10 +31,10 @@ module.exports = {
     'plugin:unicorn/recommended',
     'plugin:jsonc/recommended-with-json',
     'plugin:yml/standard',
-    'plugin:prettier/recommended'
+    'plugin:prettier/recommended',
   ],
   settings: {
-    'import/resolver': { typescript: true, node: true }
+    'import/resolver': { typescript: true, node: true },
   },
   rules: {
     'prettier/prettier': 'error',
@@ -53,7 +53,7 @@ module.exports = {
 
     // Node rules that are noisy in ESM/TS projects
     'n/no-missing-import': 'off',
-    'n/no-unsupported-features/es-syntax': 'off'
+    'n/no-unsupported-features/es-syntax': 'off',
   },
   overrides: [
     // JSON & package.json lint
@@ -67,7 +67,7 @@ module.exports = {
       files: ['**/*.{test,spec}.ts', '**/__tests__/**/*.ts', '**/*.{test,spec}.tsx'],
       env: { 'vitest/globals': true },
       plugins: ['vitest'],
-      extends: ['plugin:vitest/recommended']
-    }
-  ]
+      extends: ['plugin:vitest/recommended'],
+    },
+  ],
 };

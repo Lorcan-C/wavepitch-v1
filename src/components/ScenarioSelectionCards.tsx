@@ -1,50 +1,41 @@
 // ScenarioSelectionCards.tsx - Complete standalone component
-import React from "react";
-import { cn } from "../lib/utils";
-import { scenarios } from "../config/scenarios";
+import React from 'react';
+
+import { scenarios } from '../config/scenarios';
+import { cn } from '../lib/utils';
 
 // Inlined Card components
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-white text-gray-900 shadow-sm",
-      className
-    )}
-    {...props}
-  />
-));
+const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('rounded-lg border bg-white text-gray-900 shadow-sm', className)}
+      {...props}
+    />
+  ),
+);
 
-const CardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
-));
+const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+  ),
+);
 
-const CardTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
-    {...props}
-  />
-));
+const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+      {...props}
+    />
+  ),
+);
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-gray-600", className)}
-    {...props}
-  />
+  <p ref={ref} className={cn('text-sm text-gray-600', className)} {...props} />
 ));
 
 // Main component interface
@@ -63,13 +54,13 @@ export const ScenarioSelectionCards = ({ onSelectScenario }: ScenarioSelectionCa
 
       <div className="space-y-3">
         {scenarios.map((scenario) => (
-          <Card 
+          <Card
             key={scenario.id}
             className={cn(
-              "relative transition-all duration-200 border-gray-200",
-              scenario.isActive 
-                ? "cursor-pointer hover:shadow-lg group shadow-sm hover:shadow-md" 
-                : "opacity-60 cursor-not-allowed"
+              'relative transition-all duration-200 border-gray-200',
+              scenario.isActive
+                ? 'cursor-pointer hover:shadow-lg group shadow-sm hover:shadow-md'
+                : 'opacity-60 cursor-not-allowed',
             )}
             onClick={scenario.isActive ? () => onSelectScenario(scenario.id) : undefined}
           >
@@ -83,22 +74,22 @@ export const ScenarioSelectionCards = ({ onSelectScenario }: ScenarioSelectionCa
             )}
 
             {/* Accent bar */}
-            <div className={cn("h-1.5 rounded-t-lg", scenario.accentColor)} />
+            <div className={cn('h-1.5 rounded-t-lg', scenario.accentColor)} />
 
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle className={cn(
-                    "text-lg transition-colors duration-300",
-                    scenario.isActive 
-                      ? "text-gray-900 group-hover:text-primary" 
-                      : "text-gray-600"
-                  )}>
+                  <CardTitle
+                    className={cn(
+                      'text-lg transition-colors duration-300',
+                      scenario.isActive
+                        ? 'text-gray-900 group-hover:text-primary'
+                        : 'text-gray-600',
+                    )}
+                  >
                     {scenario.title}
                   </CardTitle>
-                  <CardDescription className="text-sm mt-1">
-                    {scenario.description}
-                  </CardDescription>
+                  <CardDescription className="text-sm mt-1">{scenario.description}</CardDescription>
                 </div>
 
                 {/* Visual participant indicators */}
@@ -106,19 +97,23 @@ export const ScenarioSelectionCards = ({ onSelectScenario }: ScenarioSelectionCa
                   <span className="text-xs text-gray-500">Participants</span>
                   <div className="flex -space-x-2">
                     {Array.from({ length: scenario.participantCount }).map((_, i) => (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className={cn(
-                          "w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center",
-                          scenario.isActive 
-                            ? "border-gray-300 bg-gray-50" 
-                            : "border-gray-200 bg-gray-100"
+                          'w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center',
+                          scenario.isActive
+                            ? 'border-gray-300 bg-gray-50'
+                            : 'border-gray-200 bg-gray-100',
                         )}
                       >
-                        <span className={cn(
-                          "text-xs",
-                          scenario.isActive ? "text-gray-400" : "text-gray-300"
-                        )}>+</span>
+                        <span
+                          className={cn(
+                            'text-xs',
+                            scenario.isActive ? 'text-gray-400' : 'text-gray-300',
+                          )}
+                        >
+                          +
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -131,4 +126,3 @@ export const ScenarioSelectionCards = ({ onSelectScenario }: ScenarioSelectionCa
     </div>
   );
 };
-

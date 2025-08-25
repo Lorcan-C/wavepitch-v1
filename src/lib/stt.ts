@@ -24,8 +24,8 @@ export const speechmatticsConfig = {
   transcription_config: {
     language: 'en',
     enable_partials: true,
-    max_delay: 2.0
-  }
+    max_delay: 2.0,
+  },
 };
 
 /**
