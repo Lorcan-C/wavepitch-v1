@@ -40,7 +40,7 @@ const NewPage: React.FC = () => {
         <img 
           src="/images/onboardinglogo_4.png" 
           alt="Logo" 
-          className="h-16 md:h-24 w-auto"
+          className="h-12 md:h-16 w-auto"
         />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">

@@ -114,7 +114,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
         <img 
           src="/images/onboardinglogo_4.png" 
           alt="Logo" 
-          className="h-16 md:h-24 w-auto"
+          className="h-12 md:h-16 w-auto"
         />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
@@ -138,7 +138,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({
               onChange={setInputValue}
               placeholder={getPlaceholder()}
               variant="textarea"
-              rows={6}
+              rows={4}
             />
             
             <FileDropzone
