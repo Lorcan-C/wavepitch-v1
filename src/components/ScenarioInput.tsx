@@ -7,6 +7,8 @@ import FileDropzone from './FileDropzone';
 import { Logo } from './Logo';
 import { NewMeetingLoading } from './NewMeetingLoading';
 import { ResponsiveContainer } from './ResponsiveContainer';
+import { useSpeechToText } from '../hooks/useSpeechToText';
+import { MicButton } from './ui/mic-button';
 
 // Types
 type ScenarioType = 'pitch' | 'planning' | 'focus';
@@ -21,6 +23,44 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Speech-to-text integration
+  const {
+    isRecording,
+    currentTranscript,
+    startRecording,
+    stopRecording,
+    resetTranscript,
+    isVoiceActive,
+    audioLevel,
+    error: speechError,
+  } = useSpeechToText({
+    language: 'en',
+    onTranscript: (text, isFinal) => {
+      if (isFinal) {
+        // Add final transcript to input with proper spacing
+        setInputValue(prev => {
+          const newText = prev.trim() + (prev.trim() ? ' ' : '') + text.trim();
+          return newText;
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('Speech-to-text error:', error);
+      setError(`Voice input error: ${error}`);
+    },
+  });
+
+  // Handle mic button click
+  const handleMicClick = async () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      setError(null); // Clear any previous errors
+      resetTranscript(); // Reset transcript for new recording
+      await startRecording();
+    }
+  };
 
   // Check if the scenario is active - if not, redirect back
   const scenario = scenarios.find((s) => s.id === scenarioType);
@@ -145,21 +185,50 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
 
             {/* Input Container */}
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
-              <textarea
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={getPlaceholder()}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              {/* Textarea with Mic Button */}
+              <div className="relative">
+                <textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={getPlaceholder()}
+                  rows={4}
+                  className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                
+                {/* Mic Button */}
+                <div className="absolute top-2 right-2">
+                  <MicButton
+                    isRecording={isRecording}
+                    isVoiceActive={isVoiceActive}
+                    audioLevel={audioLevel}
+                    onClick={handleMicClick}
+                    size="sm"
+                    variant="ghost"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Real-time Transcription Preview */}
+              {isRecording && currentTranscript && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-medium text-blue-700">
+                      {isVoiceActive ? 'Listening...' : 'Speak now'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-blue-800 italic">"{currentTranscript}"</p>
+                </div>
+              )}
 
               <FileDropzone onFilesChange={setUploadedFiles} className="mt-4" />
             </div>
 
             {/* Error Display */}
-            {error && (
+            {(error || speechError) && (
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-600">{error || speechError}</p>
               </div>
             )}
 
