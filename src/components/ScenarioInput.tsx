@@ -1,93 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-import { ArrowLeft, Mic } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 import { scenarios } from '../config/scenarios';
-import { useSpeechToText } from '../hooks/useSpeechToText';
 import FileDropzone from './FileDropzone';
 import { Logo } from './Logo';
 import { NewMeetingLoading } from './NewMeetingLoading';
 import { ResponsiveContainer } from './ResponsiveContainer';
-
-// Simple SpeechEnabledInput component (inline for now)
-interface SpeechEnabledInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  variant?: 'input' | 'textarea';
-  rows?: number;
-  className?: string;
-}
-
-const SpeechEnabledInput: React.FC<SpeechEnabledInputProps> = ({
-  value,
-  onChange,
-  placeholder = 'Type here...',
-  variant = 'textarea',
-  rows = 4,
-  className = '',
-}) => {
-  const { isListening, isConnecting, displayText, error, toggleListening } = useSpeechToText();
-
-  // Update parent component when speech text changes
-  useEffect(() => {
-    if (displayText) {
-      // Merge existing typed text with speech text
-      const currentTypedText = value.replace(displayText, ''); // Remove any existing speech text
-      const newValue = currentTypedText + displayText;
-      onChange(newValue);
-    }
-  }, [displayText, onChange]);
-
-  const InputComponent = variant === 'textarea' ? 'textarea' : 'input';
-
-  return (
-    <div className={`relative ${className}`}>
-      <InputComponent
-        value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-          onChange(e.target.value)
-        }
-        placeholder={placeholder}
-        rows={variant === 'textarea' ? rows : undefined}
-        className={`
-          w-full px-3 py-2 pr-12 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-          ${isListening || isConnecting ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
-        `}
-      />
-      <button
-        type="button"
-        onClick={toggleListening}
-        disabled={isConnecting}
-        className={`
-          absolute right-2 top-2 p-2 rounded-full transition-colors
-          ${
-            isListening
-              ? 'bg-red-100 text-red-600'
-              : isConnecting
-                ? 'bg-yellow-100 text-yellow-600'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }
-          ${isConnecting ? 'cursor-not-allowed opacity-50' : ''}
-        `}
-        title={
-          isConnecting
-            ? 'Connecting...'
-            : isListening
-              ? 'Click to stop recording'
-              : 'Click to start recording'
-        }
-      >
-        <Mic className="h-4 w-4" />
-      </button>
-      {error && (
-        <div className="absolute top-full left-0 mt-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded border">
-          {error}
-        </div>
-      )}
-    </div>
-  );
-};
 
 // Types
 type ScenarioType = 'pitch' | 'planning' | 'focus';
@@ -101,6 +20,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
   const [inputValue, setInputValue] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if the scenario is active - if not, redirect back
   const scenario = scenarios.find((s) => s.id === scenarioType);
@@ -134,9 +54,9 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
 
   const handleContinue = async () => {
     setIsLoading(true);
+    setError(null);
 
     try {
-      // TODO: Replace with actual backend API call
       const scenarioData = {
         type: scenarioType,
         description: inputValue,
@@ -146,14 +66,46 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
 
       console.log('Processing scenario data:', scenarioData);
 
-      // Mock backend processing delay
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Call new pre-meeting API
+      const response = await fetch('/api/messages/pre-meeting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pitchDescription: inputValue,
+          meetingType: scenarioType,
+        }),
+      });
 
-      // TODO: Navigate to next page when backend integration is complete
-      console.log('Scenario processing complete');
-    } catch (error) {
-      console.error('Error processing scenario:', error);
-      // TODO: Add proper error handling
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to setup meeting');
+      }
+
+      const result = await response.json();
+      console.log('Generated meeting setup:', result);
+
+      if (result.success) {
+        // Store session data for later use
+        sessionStorage.setItem(
+          'meetingSession',
+          JSON.stringify({
+            sessionId: result.sessionId,
+            meetingData: result.meetingData,
+          }),
+        );
+
+        // TODO: Navigate to meeting page
+        console.log('Meeting setup complete - ready to start meeting');
+      } else {
+        throw new Error(result.error || 'Meeting setup failed');
+      }
+    } catch (error: unknown) {
+      console.error('Error setting up meeting:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to setup meeting. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -193,16 +145,23 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
 
             {/* Input Container */}
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-dashed border-blue-500">
-              <SpeechEnabledInput
+              <textarea
                 value={inputValue}
-                onChange={setInputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 placeholder={getPlaceholder()}
-                variant="textarea"
                 rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
 
               <FileDropzone onFilesChange={setUploadedFiles} className="mt-4" />
             </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
 
             {/* Continue Button */}
             <div className="flex justify-end mt-6">
