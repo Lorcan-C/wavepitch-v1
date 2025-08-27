@@ -87,18 +87,18 @@ export const useSpeechToText = (config: SpeechToTextConfig = {}) => {
             const text =
               (data.results as { alternatives?: { content?: string }[] }[] | undefined)
                 ?.map((result) => result.alternatives?.[0]?.content || '')
-                .join('') || '';
+                .join(' ') || '';
 
-            setCurrentTranscript(finalTranscript + text);
+            setCurrentTranscript(finalTranscript + (finalTranscript ? ' ' : '') + text);
             onTranscript?.(text, false);
           } else if (data.message === 'AddTranscript') {
             const text =
               (data.results as { alternatives?: { content?: string }[] }[] | undefined)
                 ?.map((result) => result.alternatives?.[0]?.content || '')
-                .join('') || '';
+                .join(' ') || '';
 
-            setFinalTranscript((prev) => prev + text);
-            setCurrentTranscript((prev) => prev + text);
+            setFinalTranscript((prev) => prev + (prev ? ' ' : '') + text);
+            setCurrentTranscript((prev) => prev + (prev ? ' ' : '') + text);
             onTranscript?.(text, true);
           } else if (data.message === 'Error') {
             const errorMessage = data.error?.message || 'Transcription error';
