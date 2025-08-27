@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { ClerkProvider } from '@clerk/clerk-react';
+import { RealtimeTranscriptionProvider } from '@speechmatics/real-time-client-react';
 import { PostHogProvider } from 'posthog-js/react';
 
 import App from './App.tsx';
@@ -25,7 +26,9 @@ createRoot(document.getElementById('root')!).render(
         signUpFallbackRedirectUrl="/app/new"
         afterSignOutUrl="/"
       >
-        <App />
+        <RealtimeTranscriptionProvider url="wss://eu2.rt.speechmatics.com/v2/" appId="wavepitch-v1">
+          <App />
+        </RealtimeTranscriptionProvider>
       </ClerkProvider>
     </PostHogProvider>
   </StrictMode>,

@@ -1,9 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
+
 import { createWebSocketUrl } from '../utils/websocketUtils';
 
 export interface WebSocketConfig {
   endpoint?: string;
-  onMessage?: (data: any) => void;
+  onMessage?: (data: unknown) => void;
   onOpen?: () => void;
   onClose?: (event: CloseEvent) => void;
   onError?: (error: string) => void;
@@ -31,7 +32,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       return Promise.resolve();
     }
 
-    setState(prev => ({ ...prev, isConnecting: true, error: null }));
+    setState((prev) => ({ ...prev, isConnecting: true, error: null }));
 
     return new Promise((resolve, reject) => {
       try {
@@ -39,7 +40,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {
-          setState(prev => ({ ...prev, isConnected: true, isConnecting: false }));
+          setState((prev) => ({ ...prev, isConnected: true, isConnecting: false }));
           onOpen?.();
           resolve();
         };
@@ -55,19 +56,18 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
 
         wsRef.current.onerror = () => {
           const error = 'WebSocket connection error';
-          setState(prev => ({ ...prev, error, isConnecting: false }));
+          setState((prev) => ({ ...prev, error, isConnecting: false }));
           onError?.(error);
           reject(new Error(error));
         };
 
         wsRef.current.onclose = (event) => {
-          setState(prev => ({ ...prev, isConnected: false, isConnecting: false }));
+          setState((prev) => ({ ...prev, isConnected: false, isConnecting: false }));
           onClose?.(event);
         };
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Connection failed';
-        setState(prev => ({ ...prev, error: errorMessage, isConnecting: false }));
+        setState((prev) => ({ ...prev, error: errorMessage, isConnecting: false }));
         onError?.(errorMessage);
         reject(new Error(errorMessage));
       }

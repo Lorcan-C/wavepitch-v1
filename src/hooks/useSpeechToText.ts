@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useRealtimeClient } from '@speechmatics/real-time-client-react';
-import { useBrowserAudioInput } from '@speechmatics/browser-audio-input';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { RealtimeClient } from '@speechmatics/real-time-client';
 
 export interface SpeechToTextConfig {
   language?: string;
   operatingPoint?: string;
   enablePartials?: boolean;
-  autoStart?: boolean;
   onTranscript?: (text: string, isFinal: boolean) => void;
   onError?: (error: string) => void;
   onConnectionChange?: (connected: boolean) => void;
@@ -17,38 +16,25 @@ export const useSpeechToText = (config: SpeechToTextConfig = {}) => {
     language = 'en',
     operatingPoint = 'enhanced',
     enablePartials = true,
-    autoStart = false,
     onTranscript,
     onError,
     onConnectionChange,
   } = config;
 
   const [isRecording, setIsRecording] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
-  const [jwtToken, setJwtToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Official Speechmatics React hooks
-  const realtimeClient = useRealtimeClient({
-    jwt: jwtToken,
-    websocketUrl: 'wss://eu2.rt.speechmatics.com/v2/',
-    transcriptionConfig: {
-      language,
-      operating_point: operatingPoint,
-      enable_partials: enablePartials,
-      max_delay: 1.0,
-    },
-  });
-
-  const audioInput = useBrowserAudioInput({
-    client: realtimeClient.client,
-    sampleRate: 16000,
-    enableAudioLevelCallback: true,
-  });
+  const clientRef = useRef<RealtimeClient | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   // Fetch JWT token from our endpoint
   const fetchJwtToken = useCallback(async () => {
     try {
+      setError(null);
       const response = await fetch('/api/speechmatics-jwt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,112 +46,172 @@ export const useSpeechToText = (config: SpeechToTextConfig = {}) => {
 
       const data = await response.json();
       if (data.success && data.jwt) {
-        setJwtToken(data.jwt);
         return data.jwt;
       } else {
         throw new Error(data.error || 'Failed to get JWT token');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Token fetch failed';
+      setError(errorMessage);
       onError?.(errorMessage);
       throw error;
     }
   }, [onError]);
 
-  // Handle transcript updates from Speechmatics
-  useEffect(() => {
-    if (!realtimeClient.client) return;
-
-    const handlePartialTranscript = (transcript: any) => {
-      const text = transcript.results
-        ?.map((result: any) => result.alternatives?.[0]?.content || '')
-        .join('') || '';
-      
-      setCurrentTranscript(finalTranscript + text);
-      onTranscript?.(text, false);
-    };
-
-    const handleFinalTranscript = (transcript: any) => {
-      const text = transcript.results
-        ?.map((result: any) => result.alternatives?.[0]?.content || '')
-        .join('') || '';
-      
-      setFinalTranscript(prev => prev + text);
-      setCurrentTranscript(prev => prev + text);
-      onTranscript?.(text, true);
-    };
-
-    const handleError = (error: any) => {
-      const errorMessage = error?.error?.message || error?.message || 'Transcription error';
-      onError?.(errorMessage);
-    };
-
-    // Subscribe to Speechmatics events
-    realtimeClient.client.addEventListener('AddPartialTranscript', handlePartialTranscript);
-    realtimeClient.client.addEventListener('AddTranscript', handleFinalTranscript);
-    realtimeClient.client.addEventListener('Error', handleError);
-
-    return () => {
-      realtimeClient.client.removeEventListener('AddPartialTranscript', handlePartialTranscript);
-      realtimeClient.client.removeEventListener('AddTranscript', handleFinalTranscript);
-      realtimeClient.client.removeEventListener('Error', handleError);
-    };
-  }, [realtimeClient.client, finalTranscript, onTranscript, onError]);
-
   // Handle connection state changes
   useEffect(() => {
-    onConnectionChange?.(realtimeClient.connectionState === 'connected');
-  }, [realtimeClient.connectionState, onConnectionChange]);
-
-  // Auto-start if requested
-  useEffect(() => {
-    if (autoStart && !jwtToken) {
-      fetchJwtToken();
-    }
-  }, [autoStart, jwtToken, fetchJwtToken]);
+    onConnectionChange?.(isConnected);
+  }, [isConnected, onConnectionChange]);
 
   // Start recording
   const startRecording = useCallback(async () => {
     try {
       setIsRecording(true);
-      
-      // Get JWT token if we don't have one
-      if (!jwtToken) {
-        await fetchJwtToken();
-      }
+      setError(null);
 
-      // Start audio input (this will connect and start streaming)
-      await audioInput.start();
-      
+      // Get JWT token
+      const jwt = await fetchJwtToken();
+
+      // Create RealtimeClient
+      clientRef.current = new RealtimeClient();
+
+      // Set up event listeners using the receiveMessage event
+      clientRef.current.addEventListener(
+        'receiveMessage',
+        (event: {
+          data: { message: string; results?: unknown[]; error?: { message: string } };
+        }) => {
+          const { data } = event;
+
+          if (data.message === 'AddPartialTranscript') {
+            const text =
+              data.results
+                ?.map(
+                  (result: { alternatives?: { content?: string }[] }) =>
+                    result.alternatives?.[0]?.content || '',
+                )
+                .join('') || '';
+
+            setCurrentTranscript(finalTranscript + text);
+            onTranscript?.(text, false);
+          } else if (data.message === 'AddTranscript') {
+            const text =
+              data.results
+                ?.map(
+                  (result: { alternatives?: { content?: string }[] }) =>
+                    result.alternatives?.[0]?.content || '',
+                )
+                .join('') || '';
+
+            setFinalTranscript((prev) => prev + text);
+            setCurrentTranscript((prev) => prev + text);
+            onTranscript?.(text, true);
+          } else if (data.message === 'Error') {
+            const errorMessage = data.error?.message || 'Transcription error';
+            setError(errorMessage);
+            onError?.(errorMessage);
+          }
+        },
+      );
+
+      // Start transcription
+      await clientRef.current.start(jwt, {
+        transcription_config: {
+          language,
+          operating_point: operatingPoint as 'standard' | 'enhanced',
+          enable_partials: enablePartials,
+          max_delay: 1.0,
+        },
+      });
+
+      setIsConnected(true);
+
+      // Start microphone
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+      streamRef.current = stream;
+
+      // Use MediaRecorder for audio chunks
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType: 'audio/webm',
+        audioBitsPerSecond: 16000,
+      });
+
+      mediaRecorderRef.current.ondataavailable = async (event) => {
+        if (event.data.size > 0 && clientRef.current) {
+          const arrayBuffer = await event.data.arrayBuffer();
+          clientRef.current.sendAudio(arrayBuffer);
+        }
+      };
+
+      mediaRecorderRef.current.start(100); // 100ms chunks
     } catch (error) {
       setIsRecording(false);
+      setIsConnected(false);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start recording';
+      setError(errorMessage);
       onError?.(errorMessage);
     }
-  }, [jwtToken, fetchJwtToken, audioInput.start, onError]);
+  }, [
+    fetchJwtToken,
+    language,
+    operatingPoint,
+    enablePartials,
+    finalTranscript,
+    onTranscript,
+    onError,
+  ]);
 
   // Stop recording
   const stopRecording = useCallback(() => {
     setIsRecording(false);
-    audioInput.stop();
-  }, [audioInput.stop]);
+    setIsConnected(false);
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (clientRef.current) {
+      clientRef.current.stopRecognition();
+      clientRef.current = null;
+    }
+  }, []);
 
   // Reset transcript
   const resetTranscript = useCallback(() => {
     setCurrentTranscript('');
     setFinalTranscript('');
+    setError(null);
   }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopRecording();
+    };
+  }, [stopRecording]);
 
   return {
     // State
     isRecording,
-    isConnected: realtimeClient.connectionState === 'connected',
-    isConnecting: realtimeClient.connectionState === 'connecting',
+    isConnected,
+    isConnecting: false, // Simplified for now
     currentTranscript,
     finalTranscript,
-    audioLevel: audioInput.audioLevel || 0,
-    isVoiceActive: (audioInput.audioLevel || 0) > 0.1,
-    error: realtimeClient.error,
+    audioLevel: 0, // Simplified for now
+    isVoiceActive: isRecording, // Simplified for now
+    error,
 
     // Actions
     startRecording,

@@ -8,30 +8,32 @@ export interface TranscriptResult {
 }
 
 export interface TranscriptState {
-  current: string;     // Combined partial + final for display
-  final: string;       // Confirmed final text
-  partial: string;     // Current partial text
+  current: string; // Combined partial + final for display
+  final: string; // Confirmed final text
+  partial: string; // Current partial text
 }
 
 export const updateTranscriptState = (
   prevState: TranscriptState,
-  result: TranscriptResult
+  result: TranscriptResult,
 ): TranscriptState => {
   switch (result.type) {
-    case 'partial':
+    case 'partial': {
       return {
         ...prevState,
         partial: result.text || '',
         current: prevState.final + (result.text || ''),
       };
+    }
 
-    case 'final':
+    case 'final': {
       const finalText = result.text || '';
       return {
         final: prevState.final + finalText,
         partial: '',
         current: prevState.final + finalText,
       };
+    }
 
     default:
       return prevState;
