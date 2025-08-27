@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 
 import { ArrowLeft } from 'lucide-react';
 
+import { FEATURE_FLAGS } from '../config/featureFlags';
 import { scenarios } from '../config/scenarios';
+import { useSpeechToText } from '../hooks/useSpeechToText';
 import FileDropzone from './FileDropzone';
 import { Logo } from './Logo';
 import { NewMeetingLoading } from './NewMeetingLoading';
 import { ResponsiveContainer } from './ResponsiveContainer';
-import { useSpeechToText } from '../hooks/useSpeechToText';
 import { MicButton } from './ui/mic-button';
 
 // Types
@@ -39,7 +40,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
     onTranscript: (text, isFinal) => {
       if (isFinal) {
         // Add final transcript to input with proper spacing
-        setInputValue(prev => {
+        setInputValue((prev) => {
           const newText = prev.trim() + (prev.trim() ? ' ' : '') + text.trim();
           return newText;
         });
@@ -194,7 +195,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
                   rows={4}
                   className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                
+
                 {/* Mic Button */}
                 <div className="absolute top-2 right-2">
                   <MicButton
@@ -210,7 +211,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
               </div>
 
               {/* Real-time Transcription Preview */}
-              {isRecording && currentTranscript && (
+              {FEATURE_FLAGS.SHOW_LISTENING_BOX && isRecording && currentTranscript && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
