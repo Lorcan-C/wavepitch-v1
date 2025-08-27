@@ -1,6 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
-import { detectBrowserSupport, getSupportedMimeType, convertToPCM16, createAudioContext } from '../utils/audioUtils';
+
 import { AUDIO_CONFIG, ERROR_MESSAGES } from '../utils/audioConstants';
+import {
+  convertToPCM16,
+  createAudioContext,
+  detectBrowserSupport,
+  getSupportedMimeType,
+} from '../utils/audioUtils';
 
 export interface AudioRecorderConfig {
   timeslice?: number;
@@ -13,15 +19,8 @@ export interface AudioRecorderState {
   error: string | null;
 }
 
-export const useAudioRecorder = (
-  stream: MediaStream | null,
-  config: AudioRecorderConfig = {}
-) => {
-  const {
-    timeslice = AUDIO_CONFIG.DEFAULT_TIMESLICE,
-    onDataAvailable,
-    onError,
-  } = config;
+export const useAudioRecorder = (stream: MediaStream | null, config: AudioRecorderConfig = {}) => {
+  const { timeslice = AUDIO_CONFIG.DEFAULT_TIMESLICE, onDataAvailable, onError } = config;
 
   const [state, setState] = useState<AudioRecorderState>({
     isRecording: false,
@@ -37,13 +36,13 @@ export const useAudioRecorder = (
   const startRecording = useCallback(async () => {
     if (!stream) {
       const error = 'No audio stream available';
-      setState(prev => ({ ...prev, error }));
+      setState((prev) => ({ ...prev, error }));
       onError?.(error);
       return;
     }
 
     try {
-      setState(prev => ({ ...prev, error: null, isRecording: true }));
+      setState((prev) => ({ ...prev, error: null, isRecording: true }));
 
       if (!needsFallback) {
         // Modern browsers: Use MediaRecorder
@@ -61,8 +60,8 @@ export const useAudioRecorder = (
         };
 
         mediaRecorderRef.current.onerror = (event) => {
-          const error = `${ERROR_MESSAGES.MEDIA_RECORDER_ERROR}: ${(event as any).error?.message || 'Unknown'}`;
-          setState(prev => ({ ...prev, error, isRecording: false }));
+          const error = `${ERROR_MESSAGES.MEDIA_RECORDER_ERROR}: ${(event as Event & { error?: { message?: string } }).error?.message || 'Unknown'}`;
+          setState((prev) => ({ ...prev, error, isRecording: false }));
           onError?.(error);
         };
 
@@ -71,9 +70,9 @@ export const useAudioRecorder = (
         // Safari fallback: Use Web Audio API
         audioContextRef.current = createAudioContext(AUDIO_CONFIG.DEFAULT_SAMPLE_RATE);
         const source = audioContextRef.current.createMediaStreamSource(stream);
-        
+
         processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-        
+
         processorRef.current.onaudioprocess = (event) => {
           if (state.isRecording && onDataAvailable) {
             const pcm16Data = convertToPCM16(event.inputBuffer);
@@ -86,13 +85,13 @@ export const useAudioRecorder = (
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.UNKNOWN_ERROR;
-      setState(prev => ({ ...prev, error: errorMessage, isRecording: false }));
+      setState((prev) => ({ ...prev, error: errorMessage, isRecording: false }));
       onError?.(errorMessage);
     }
   }, [stream, timeslice, onDataAvailable, onError, needsFallback, state.isRecording]);
 
   const stopRecording = useCallback(() => {
-    setState(prev => ({ ...prev, isRecording: false }));
+    setState((prev) => ({ ...prev, isRecording: false }));
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();

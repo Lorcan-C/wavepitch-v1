@@ -1,23 +1,28 @@
 import { MIME_TYPES } from './audioConstants';
 
 export const detectBrowserSupport = () => {
-  const hasMediaDevices = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+  const hasMediaDevices =
+    typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   const hasMediaRecorder = typeof MediaRecorder !== 'undefined';
-  const hasAudioContext = typeof AudioContext !== 'undefined' || typeof (window as any)?.webkitAudioContext !== 'undefined';
-  
+  const hasAudioContext =
+    typeof AudioContext !== 'undefined' ||
+    typeof (window as Window & { webkitAudioContext?: typeof AudioContext })?.webkitAudioContext !==
+      'undefined';
+
   return {
     isSupported: hasMediaDevices,
     hasMediaRecorder,
     hasAudioContext,
-    needsFallback: hasMediaDevices && (!hasMediaRecorder || !MediaRecorder.isTypeSupported?.(MIME_TYPES.WEBM)),
+    needsFallback:
+      hasMediaDevices && (!hasMediaRecorder || !MediaRecorder.isTypeSupported?.(MIME_TYPES.WEBM)),
   };
 };
 
 export const getSupportedMimeType = (): string => {
   if (typeof MediaRecorder === 'undefined') return MIME_TYPES.WAV;
-  
+
   const types = [MIME_TYPES.WEBM, MIME_TYPES.MP4, MIME_TYPES.WAV];
-  return types.find(type => MediaRecorder.isTypeSupported(type)) || MIME_TYPES.WAV;
+  return types.find((type) => MediaRecorder.isTypeSupported(type)) || MIME_TYPES.WAV;
 };
 
 export const convertToPCM16 = (audioBuffer: AudioBuffer): ArrayBuffer => {
@@ -34,7 +39,9 @@ export const convertToPCM16 = (audioBuffer: AudioBuffer): ArrayBuffer => {
 };
 
 export const createAudioContext = (sampleRate: number): AudioContext => {
-  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+  const AudioContextClass =
+    window.AudioContext ||
+    (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   return new AudioContextClass({ sampleRate });
 };
 
