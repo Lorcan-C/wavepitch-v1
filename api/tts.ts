@@ -19,7 +19,7 @@ export default async function handler(request: Request) {
 
     const audio = await generateSpeech({
       model: openai.speech('tts-1', {
-        apiKey: process.env.openai_api_key,
+        apiKey: process.env.OPENAI_API_KEY,
       }),
       text,
       voice,
