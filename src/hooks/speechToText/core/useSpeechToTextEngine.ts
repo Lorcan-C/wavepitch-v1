@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from 'react';
-import { useWebSocketConnection } from './useWebSocketConnection';
-import { useTranscriptState } from './useTranscriptState';
+
 import { TranscriptResult } from '../utils/transcriptUtils';
+import { useTranscriptState } from './useTranscriptState';
+import { useWebSocketConnection } from './useWebSocketConnection';
 
 export interface SpeechToTextEngineConfig {
   language: string;
@@ -25,24 +26,26 @@ export const useSpeechToTextEngine = (config: SpeechToTextEngineConfig) => {
   } = config;
 
   const transcriptState = useTranscriptState({ onTranscript });
-  
+
   const webSocket = useWebSocketConnection({
     maxReconnectAttempts,
-    onMessage: transcriptState.updateTranscript,
+    onMessage: (data: unknown) => transcriptState.updateTranscript(data as TranscriptResult),
     onError,
     onConnectionChange,
   });
 
   const connect = useCallback(async () => {
     await webSocket.connect();
-    
+
     // Send configuration after connection
-    webSocket.send(JSON.stringify({
-      type: 'configure',
-      language,
-      operatingPoint,
-      enablePartials,
-    }));
+    webSocket.send(
+      JSON.stringify({
+        type: 'configure',
+        language,
+        operatingPoint,
+        enablePartials,
+      }),
+    );
   }, [webSocket.connect, webSocket.send, language, operatingPoint, enablePartials]);
 
   // Cleanup on unmount
@@ -58,7 +61,7 @@ export const useSpeechToTextEngine = (config: SpeechToTextEngineConfig) => {
     isConnecting: webSocket.isConnecting,
     error: webSocket.error,
 
-    // Transcript state  
+    // Transcript state
     transcript: transcriptState.transcript,
 
     // Actions

@@ -85,22 +85,16 @@ export const useSpeechToText = (config: SpeechToTextConfig = {}) => {
 
           if (data.message === 'AddPartialTranscript') {
             const text =
-              data.results
-                ?.map(
-                  (result: { alternatives?: { content?: string }[] }) =>
-                    result.alternatives?.[0]?.content || '',
-                )
+              (data.results as { alternatives?: { content?: string }[] }[] | undefined)
+                ?.map((result) => result.alternatives?.[0]?.content || '')
                 .join('') || '';
 
             setCurrentTranscript(finalTranscript + text);
             onTranscript?.(text, false);
           } else if (data.message === 'AddTranscript') {
             const text =
-              data.results
-                ?.map(
-                  (result: { alternatives?: { content?: string }[] }) =>
-                    result.alternatives?.[0]?.content || '',
-                )
+              (data.results as { alternatives?: { content?: string }[] }[] | undefined)
+                ?.map((result) => result.alternatives?.[0]?.content || '')
                 .join('') || '';
 
             setFinalTranscript((prev) => prev + text);

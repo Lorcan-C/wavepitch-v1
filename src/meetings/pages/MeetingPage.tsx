@@ -174,7 +174,7 @@ export const MeetingPage: React.FC = () => {
 
   return (
     <MeetingInterface
-      meetingId={meetingId}
+      meetingId={meetingId || 'default-meeting'}
       meetingTitle={meetingTitle}
       participants={participants}
       user={mockUser}
