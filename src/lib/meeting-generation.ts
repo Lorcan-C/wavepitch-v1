@@ -1,7 +1,7 @@
-import { openai } from '@ai-sdk/openai';
 import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
+import { DEFAULT_TEXT_MODEL } from './ai';
 import { getLangfusePrompt } from './langfuse';
 
 export const MeetingDataSchema = z.object({
@@ -22,14 +22,14 @@ export async function generateMeetingFlow(pitchDescription: string): Promise<Mee
   // Step 1: Extract Meeting Purpose
   const purposePrompt = await getLangfusePrompt('extract-meeting-purpose');
   const meetingPurpose = await generateText({
-    model: openai('gpt-4'),
+    model: DEFAULT_TEXT_MODEL,
     prompt: purposePrompt.compile({ pitchDescription }),
   });
 
   // Step 2: Generate Expert Team + Meeting Context
   const meetingPrompt = await getLangfusePrompt('generate-meeting-details');
   const meetingDetails = await generateObject({
-    model: openai('gpt-4'),
+    model: DEFAULT_TEXT_MODEL,
     schema: z.object({
       experts: z.array(
         z.object({

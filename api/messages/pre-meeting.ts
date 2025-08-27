@@ -1,7 +1,7 @@
-import { openai } from '@ai-sdk/openai';
 import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
+import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
 import { getLangfusePrompt } from '../../src/lib/langfuse';
 
 // Enhanced schemas for MVP demo
@@ -59,7 +59,7 @@ export default async function handler(req: Request) {
 
     // Generate complete meeting setup
     const meetingSetup = await generateObject({
-      model: openai('gpt-4'),
+      model: DEFAULT_TEXT_MODEL,
       schema: MeetingSetupSchema,
       prompt: meetingSetupPrompt.compile({
         pitchDescription,
@@ -74,7 +74,7 @@ export default async function handler(req: Request) {
     const openingMessages = await Promise.all(
       meetingSetup.object.experts.map((expert) =>
         generateText({
-          model: openai('gpt-4'),
+          model: DEFAULT_TEXT_MODEL,
           prompt: expertOpeningPrompt.compile({
             expertName: expert.name,
             expertRole: expert.role,

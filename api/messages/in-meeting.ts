@@ -1,7 +1,7 @@
-import { openai } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 import { z } from 'zod';
 
+import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
 import { getLangfusePrompt } from '../../src/lib/langfuse';
 
 // Context schema for type validation (used for documentation)
@@ -165,7 +165,7 @@ async function handleGenerateResponse(
 
     // Generate response with streaming for real-time feel
     const stream = await streamText({
-      model: openai('gpt-4'),
+      model: DEFAULT_TEXT_MODEL,
       prompt: prompt,
       temperature: 0.7, // Slight randomness for natural responses
     });
@@ -221,7 +221,7 @@ async function handleAdvanceSpeaker(
 
     // Pre-generate next response for smooth transitions
     const preGeneratedResponse = await generateText({
-      model: openai('gpt-4'),
+      model: DEFAULT_TEXT_MODEL,
       prompt: transitionPrompt.compile({
         expertName: nextSpeaker.name,
         expertRole: nextSpeaker.role,

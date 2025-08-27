@@ -5,8 +5,28 @@ import {
   experimental_generateSpeech as generateSpeech,
 } from 'ai';
 
-// Provider switcher - change this line to switch providers
-const model = openai('gpt-4');
+// Model Configuration - Centralized model management
+export const AI_MODELS = {
+  // Text generation models
+  TEXT: {
+    GPT_4O: openai('gpt-4o'),
+    GPT_4O_MINI: openai('gpt-4o-mini'),
+    GPT_4: openai('gpt-4'),
+  },
+  // Speech models
+  SPEECH: {
+    GPT_4O_MINI_TTS: openai.speech('gpt-4o-mini-tts'),
+    TTS_1: openai.speech('tts-1'),
+    TTS_1_HD: openai.speech('tts-1-hd'),
+  },
+} as const;
+
+// Default model selection - change here to switch models globally
+export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4O;
+export const DEFAULT_SPEECH_MODEL = AI_MODELS.SPEECH.GPT_4O_MINI_TTS;
+
+// Legacy export for backward compatibility
+const model = DEFAULT_TEXT_MODEL;
 
 /**
  * Generate text using AI SDK Core
@@ -40,7 +60,7 @@ export async function generateAISpeech(
   try {
     // Step 2: Basic implementation
     const audio = await generateSpeech({
-      model: openai.speech('tts-1'),
+      model: DEFAULT_SPEECH_MODEL,
       text,
       voice,
     });
