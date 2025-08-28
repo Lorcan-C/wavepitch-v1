@@ -433,26 +433,16 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
                 maxSize={75}
                 className="overflow-hidden"
               >
-                <div className="h-full relative flex">
-                  <div className="flex-1">
-                    <VideoCallLayout
-                      participants={participants}
-                      user={user}
-                      currentSpeakerId={currentSpeakerId}
-                      nextSpeakerId={nextSpeakerId}
-                    />
-                  </div>
-
-                  {/* Speaker Queue positioned within video area */}
-                  {showSpeakerQueue && (
-                    <SpeakerQueue
-                      speakers={speakerQueue}
-                      currentSpeakerIndex={currentSpeakerIndex}
-                      onReshuffle={handleReshuffle}
-                      isVisible={showSpeakerQueue}
-                    />
-                  )}
-                </div>
+                <VideoGridWithQueue
+                  participants={participants}
+                  user={user}
+                  currentSpeakerId={currentSpeakerId}
+                  nextSpeakerId={nextSpeakerId}
+                  showSpeakerQueue={showSpeakerQueue}
+                  speakerQueue={speakerQueue}
+                  currentSpeakerIndex={currentSpeakerIndex}
+                  onReshuffle={handleReshuffle}
+                />
               </Panel>
 
               {/* Resizable Handle */}
@@ -504,16 +494,16 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
               {/* Mobile Chat Overlay */}
               {isChatOpen && (
                 <ChatOverlay onClose={() => setIsChatOpen(false)}>
-                  <ChatPanel
+                  <MeetingChatPanel
                     messages={messages}
-                    participantCount={totalParticipants}
-                    isLoading={isLoading || isStreaming}
+                    totalParticipants={totalParticipants}
+                    isLoading={isLoading}
+                    isStreaming={isStreaming}
                     isMicActive={isMicActive}
+                    streamingMessage={streamingMessage}
                     onSendMessage={handleSendMessage}
                     onNextSpeaker={handleNextSpeaker}
                     onToggleMic={handleToggleMic}
-                    streamingMessage={streamingMessage}
-                    isStreaming={isStreaming}
                   />
                 </ChatOverlay>
               )}
