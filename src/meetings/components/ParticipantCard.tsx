@@ -22,7 +22,7 @@ const getSpeakingStyles = (state: SpeakingState) => {
 };
 
 const getBackgroundColor = (color: Participant['color']) => {
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     purple: 'bg-purple-500',
     blue: 'bg-blue-500',
     pink: 'bg-pink-500',
@@ -30,7 +30,7 @@ const getBackgroundColor = (color: Participant['color']) => {
     yellow: 'bg-yellow-500',
     red: 'bg-red-500',
   };
-  return colorMap[color];
+  return colorMap[color] || 'bg-gray-500';
 };
 
 export const ParticipantCard: React.FC<ParticipantCardProps> = ({
