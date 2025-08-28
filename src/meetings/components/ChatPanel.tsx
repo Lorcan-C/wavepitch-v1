@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { MessageSquare, Users } from 'lucide-react';
 
+import { ScrollArea } from '../../components/ui/scroll-area';
 import { Message } from '../types';
 import { ChatInput } from './ChatInput';
 import { ChatMessage } from './ChatMessage';
@@ -46,14 +47,27 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
+  // Enhanced auto-scroll with user scroll detection
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, streamingMessage]);
+  }, [messages, isLoading, streamingMessage, shouldAutoScroll]);
+
+  // Detect user scroll to disable auto-scroll temporarily
+  const handleScroll = () => {
+    if (scrollAreaRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+      const isAtBottom = scrollHeight - scrollTop <= clientHeight + 50; // 50px threshold
+      setShouldAutoScroll(isAtBottom);
+    }
+  };
 
   return (
     <div className="w-full bg-white border-l border-gray-200 h-full flex flex-col">
@@ -73,51 +87,49 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {/* Messages Area */}
-      <div
-        ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-4 space-y-1"
-        style={{ scrollbarWidth: 'thin' }}
-      >
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No messages yet</p>
-              <p className="text-xs">Start the conversation!</p>
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4" onScrollCapture={handleScroll}>
+        <div className="space-y-1">
+          {messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No messages yet</p>
+                <p className="text-xs">Start the conversation!</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            {/* Show streaming message */}
-            {isStreaming && streamingMessage && (
-              <div className="flex justify-start mb-4">
-                <div className="max-w-xs lg:max-w-md">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-gray-600">AI Assistant</span>
-                    <div className="flex gap-1">
-                      <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-                      <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-                      <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} />
+              ))}
+              {/* Show streaming message */}
+              {isStreaming && streamingMessage && (
+                <div className="flex justify-start mb-4">
+                  <div className="max-w-xs lg:max-w-md">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-gray-600">AI Assistant</span>
+                      <div className="flex gap-1">
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                        <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-100 text-gray-900 rounded-lg rounded-bl-sm px-4 py-3">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {streamingMessage}
+                        <span className="inline-block w-2 h-5 bg-blue-500 animate-pulse ml-1"></span>
+                      </p>
                     </div>
                   </div>
-                  <div className="bg-gray-100 text-gray-900 rounded-lg rounded-bl-sm px-4 py-3">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {streamingMessage}
-                      <span className="inline-block w-2 h-5 bg-blue-500 animate-pulse ml-1"></span>
-                    </p>
-                  </div>
                 </div>
-              </div>
-            )}
-            {/* Show thinking indicator when loading but not streaming */}
-            {isLoading && !isStreaming && <ThinkingIndicator />}
-          </>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+              )}
+              {/* Show thinking indicator when loading but not streaming */}
+              {isLoading && !isStreaming && <ThinkingIndicator />}
+            </>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
 
       {/* Input */}
       <ChatInput

@@ -2,13 +2,16 @@
 
 ## 📋 To-Dos
 
-### Phase 1: Core Functionality (Priority)
+### Phase 1: Core Functionality (Priority - 80/20 Focus)
 
-- [ ] **Multi-Provider TTS Service**
-  - [ ] Integrate ElevenLabs API alongside existing OpenAI TTS
-  - [ ] Implement priority-based TTS registry (ElevenLabs → OpenAI → Web Speech)
-  - [ ] Add voice assignment system for persona-based audio mapping
-  - [ ] Implement hash-based voice distribution for agent variety
+- [ ] **ServiceRegistry Foundation** ⭐ HIGHEST IMPACT (80% of reliability benefits)
+  - [ ] Create basic service interfaces (TextGenerationService, TextToSpeechService)
+  - [ ] Build simple ServiceRegistry to manage active services
+  - [ ] Wrap existing OpenAI calls behind service interfaces
+  - [ ] Add basic error handling with fallback to secondary service
+  - [ ] Replace direct API calls in meeting components with registry calls
+  - **Impact**: Instant reliability improvement, foundation for all future enhancements
+  - **Effort**: ~4 hours - just abstracting existing code
 
 - [ ] **Cross-Platform Audio Management**
   - [ ] Replace basic Audio API with Howler.js for iOS compatibility
@@ -16,17 +19,11 @@
   - [ ] Add proper resource cleanup and memory management
   - [ ] Create audio queue management system
 
-- [ ] **AI-Powered Speaker Intelligence**
-  - [ ] Replace round-robin speaker selection with AI-powered logic
-  - [ ] Implement context-aware agent orchestration
-  - [ ] Add conversation flow analysis for intelligent transitions
-  - [ ] Create expertise-based speaker recommendation system
-
-- [ ] **Response Pre-Generation**
-  - [ ] Implement background AI response preparation
-  - [ ] Add 30-second response caching system
-  - [ ] Create next speaker prediction logic
-  - [ ] Implement smooth transition mechanisms
+- [ ] **Multi-Provider Extensions** (Build on ServiceRegistry foundation)
+  - [ ] Add Gemini as secondary AI provider for fallback
+  - [ ] Integrate ElevenLabs TTS as primary with OpenAI fallback
+  - [ ] Implement hash-based voice distribution for agent variety
+  - [ ] Add service health monitoring and automatic switching
 
 ### Phase 2: Enhanced UX
 
@@ -83,6 +80,14 @@
 ## 📅 Change Log
 
 ### 2025-08-28
+
+**80/20 ServiceRegistry Prioritization**
+
+- Applied 80/20 principle to ServiceRegistry implementation - identified 4-hour effort for 80% of reliability benefits
+- Prioritized basic service abstraction over complex multi-provider system
+- Focus: Wrap existing OpenAI calls behind service interfaces with simple fallback
+- Target: Instant reliability improvement and foundation for future enhancements
+- Updated Phase 1 priorities to emphasize ServiceRegistry Foundation as highest impact
 
 **Analysis & Architecture Review**
 

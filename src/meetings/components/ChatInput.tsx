@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 
-import { ChevronRight, Mic, MicOff, Send } from 'lucide-react';
+import { ChevronRight, Send } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { MicButton } from '@/components/ui/mic-button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -41,27 +43,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {/* Text Input */}
         <div className="flex gap-2">
           <div className="flex-1 relative">
-            <textarea
+            <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="
-                w-full px-3 py-2 border border-gray-300 rounded-lg 
-                focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                resize-none transition-all duration-200
-                max-h-32 min-h-[2.5rem]
-              "
-              rows={1}
-              style={{
-                height: 'auto',
-                minHeight: '2.5rem',
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
-              }}
+              className="resize-none"
             />
           </div>
 
@@ -80,28 +67,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {/* Control Buttons */}
         <div className="flex gap-2">
           {/* Microphone Toggle */}
-          <Button
-            type="button"
-            variant={isMicActive ? 'destructive' : 'outline'}
-            size="sm"
-            onClick={() => {
-              console.log('Mic toggle clicked');
-              onToggleMic();
-            }}
-            className="flex items-center gap-2"
-          >
-            {isMicActive ? (
-              <>
-                <MicOff className="h-4 w-4" />
-                <span className="hidden sm:inline">Stop</span>
-              </>
-            ) : (
-              <>
-                <Mic className="h-4 w-4" />
-                <span className="hidden sm:inline">Speak</span>
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <MicButton
+              isRecording={isMicActive}
+              size="md"
+              variant="default"
+              onClick={() => {
+                console.log('Mic toggle clicked');
+                onToggleMic();
+              }}
+            />
+            <span className="text-sm text-gray-600 hidden sm:inline">
+              {isMicActive ? 'Stop' : 'Speak'}
+            </span>
+          </div>
 
           {/* Next Speaker Button */}
           <Button

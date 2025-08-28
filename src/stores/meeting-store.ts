@@ -113,8 +113,8 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
                   name: expert.name || `Expert ${index + 1}`,
                   role: expert.role || expert.expertise || 'Expert',
                   description: expert.bio || expert.expertise || expert.description || '',
-                  avatar: expert.avatar || ['👨', '👩', '🧑‍💼', '👨‍💻', '👩‍💻'][index % 5],
-                  color: (['purple', 'blue', 'pink', 'green', 'yellow'] as const)[index % 5],
+                  avatar: expert.avatar,
+                  color: expert.color,
                 }),
               );
             });

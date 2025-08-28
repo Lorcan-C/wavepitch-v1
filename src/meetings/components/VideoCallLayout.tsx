@@ -18,9 +18,7 @@ export const VideoCallLayout: React.FC<VideoCallLayoutProps> = ({
   user,
   currentSpeakerId,
   nextSpeakerId,
-   
   onParticipantClick,
-   
   onParticipantDoubleClick,
   onUserClick,
 }) => {

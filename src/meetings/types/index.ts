@@ -25,6 +25,19 @@ export interface Message {
   isUser: boolean;
   timestamp: number;
   senderName?: string;
+  userId?: string;
+  messageType?: 'intro' | 'regular' | 'conclusion';
+  speakerTurn?: number;
+  isAnimated?: boolean;
+  isTyping?: boolean;
+  conversationId?: string;
+  aiGeneration?: {
+    generationSuccess: boolean;
+    retryCount: number;
+    tokenCount: number;
+    promptUsed: string;
+    chainOfThoughtAnalysis?: string;
+  };
 }
 
 export interface SpeakerQueueItem {
@@ -44,4 +57,5 @@ export interface ExpertApiData {
   bio?: string;
   description?: string;
   avatar?: string;
+  color?: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red' | string;
 }
