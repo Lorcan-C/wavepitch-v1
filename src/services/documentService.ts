@@ -63,8 +63,9 @@ class DocumentService {
           const textContent = await page.getTextContent();
           const pageText = textContent.items
             .map((item: unknown) => {
-              if (typeof item === 'object' && 'str' in item) {
-                return item.str;
+              if (typeof item === 'object' && item !== null && 'str' in item) {
+                const strItem = item as { str: unknown };
+                return typeof strItem.str === 'string' ? strItem.str : '';
               }
               return '';
             })
