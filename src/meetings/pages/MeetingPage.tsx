@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { useParams } from 'react-router-dom';
 
+import { getInitials } from '../../lib/getInitials';
 import { MeetingInterface } from '../components/MeetingInterface';
 import { Message, Participant, User } from '../types';
 
@@ -76,68 +77,63 @@ export const MeetingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load meeting data from pre-meeting API
+  // Load meeting data from stored session
   useEffect(() => {
-    const loadMeetingData = async () => {
+    const loadMeetingData = () => {
       try {
         setIsLoading(true);
 
-        // For existing meetings, we could load from a database
-        // For now, we'll generate a new meeting based on the meetingId
-        const response = await fetch('/api/messages/pre-meeting', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pitchDescription: `Meeting ID: ${meetingId} - Interactive business discussion and planning session`,
-            meetingType: 'planning',
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Meeting data loaded:', data);
-
-          if (data.success && data.meetingData) {
-            // Convert API participants to our format
-            const apiParticipants: Participant[] = data.meetingData.experts.map(
-              (
-                expert: { id: string; name: string; role: string; expertise: string; bio: string },
-                index: number,
-              ) => ({
-                id: expert.id,
-                name: expert.name,
-                role: expert.role,
-                avatar: ['👩', '👨', '👩‍💼', '👨‍💼', '🧑‍💻'][index % 5], // Cycle through avatars
-                color: ['purple', 'blue', 'pink', 'green', 'yellow'][
-                  index % 5
-                ] as Participant['color'],
-              }),
-            );
-
-            // Convert pre-generated openings to messages
-            const initialMessages: Message[] =
-              data.meetingData.preGeneratedOpenings?.map(
-                (
-                  opening: { message: string; expertId: string; timestamp: number },
-                  index: number,
-                ) => ({
-                  id: `opening-${index}`,
-                  content: opening.message,
-                  sender: opening.expertId,
-                  isUser: false,
-                  timestamp: opening.timestamp,
-                  senderName:
-                    apiParticipants.find((p) => p.id === opening.expertId)?.name || 'AI Assistant',
-                }),
-              ) || [];
-
-            setParticipants(apiParticipants);
-            setMessages(initialMessages);
-            setMeetingTitle(data.meetingData.meetingPurpose || 'AI Business Meeting');
-          }
-        } else {
-          throw new Error('Failed to load meeting data');
+        // Load from stored session data
+        const storedSession = sessionStorage.getItem('meetingSession');
+        if (!storedSession) {
+          throw new Error('No meeting session found. Please start a new meeting.');
         }
+
+        const sessionData = JSON.parse(storedSession);
+
+        // Check if this is the correct session
+        if (sessionData.sessionId !== meetingId) {
+          throw new Error('Meeting session mismatch. Please start a new meeting.');
+        }
+
+        if (!sessionData.meetingData) {
+          throw new Error('Invalid meeting data. Please start a new meeting.');
+        }
+
+        console.log('Loading meeting from stored session:', sessionData);
+        const data = sessionData.meetingData;
+
+        // Convert API participants to our format
+        const apiParticipants: Participant[] = data.experts.map(
+          (
+            expert: { id: string; name: string; role: string; expertise: string; bio: string },
+            index: number,
+          ) => ({
+            id: expert.id,
+            name: expert.name,
+            role: expert.role,
+            avatar: getInitials(expert.name),
+            color: ['purple', 'blue', 'pink', 'green', 'yellow'][index % 5] as Participant['color'],
+          }),
+        );
+
+        // Convert pre-generated openings to messages
+        const initialMessages: Message[] =
+          data.preGeneratedOpenings?.map(
+            (opening: { message: string; expertId: string; timestamp: number }, index: number) => ({
+              id: `opening-${index}`,
+              content: opening.message,
+              sender: opening.expertId,
+              isUser: false,
+              timestamp: opening.timestamp,
+              senderName:
+                apiParticipants.find((p) => p.id === opening.expertId)?.name || 'AI Assistant',
+            }),
+          ) || [];
+
+        setParticipants(apiParticipants);
+        setMessages(initialMessages);
+        setMeetingTitle(data.meetingPurpose || 'AI Business Meeting');
       } catch (error) {
         console.error('Error loading meeting data:', error);
         setError('Failed to load meeting. Using default data.');
