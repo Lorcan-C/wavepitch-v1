@@ -3,46 +3,16 @@ import { z } from 'zod';
 
 import { DEFAULT_TEXT_MODEL } from '../lib/ai';
 import { getLangfusePrompt } from '../lib/langfuse';
-
-// Schemas for pitch processing
-const PitchContextSchema = z.object({
-  topic: z.string(),
-  opportunity: z.string(),
-  stakeholders: z.array(
-    z.object({
-      name: z.string(),
-      role: z.string(),
-      relationship: z.string(),
-      mentioned_as: z.string(),
-      involvement_level: z.enum(['high', 'medium', 'low']),
-    }),
-  ),
-  context: z.enum(['workplace', 'pitch', 'general']),
-  user_role: z.string(),
-  key_points: z.array(z.string()),
-  meeting_goal: z.string(),
-  urgency: z.enum(['high', 'medium', 'low']),
-  preparation_notes: z.string(),
-});
-
-const MeetingSetupSchema = z.object({
-  meetingPurpose: z.string(),
-  meetingContext: z.string(),
-  duration: z.number(),
-  experts: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      role: z.string(),
-      expertise: z.string(),
-      bio: z.string(),
-    }),
-  ),
-});
+import {
+  type MeetingSetup,
+  MeetingSetupSchema,
+  type PitchContext,
+  PitchContextSchema,
+} from './pitch-processing/validation';
 
 export interface PitchProcessingResult {
-  processedContext: z.infer<typeof PitchContextSchema>;
-  meetingData: z.infer<typeof MeetingSetupSchema> & {
+  processedContext: PitchContext;
+  meetingData: MeetingSetup & {
     preGeneratedOpenings?: Array<{
       expertId: string;
       message: string;
@@ -76,7 +46,7 @@ export class PitchProcessingService {
       ]);
 
       // Step 2: Process pitch context (if we have the prompt)
-      let processedContext: z.infer<typeof PitchContextSchema> | null = null;
+      let processedContext: PitchContext | null = null;
       if (pitchAnalysisPrompt) {
         processedContext = await this.analyzePitchContext(
           pitchDescription,
@@ -134,7 +104,7 @@ export class PitchProcessingService {
     pitchDescription: string,
     documents: Array<{ filename: string; content?: string }>,
     pitchAnalysisPrompt: { compile: (data: Record<string, string>) => string },
-  ): Promise<z.infer<typeof PitchContextSchema>> {
+  ): Promise<PitchContext> {
     const documentContext =
       documents.length > 0
         ? documents
@@ -201,7 +171,7 @@ export class PitchProcessingService {
   private static createFallbackContext(
     pitchDescription: string,
     meetingSetup: z.infer<typeof MeetingSetupSchema>,
-  ): z.infer<typeof PitchContextSchema> {
+  ): PitchContext {
     return {
       topic: meetingSetup.meetingContext,
       opportunity: pitchDescription.slice(0, 200),

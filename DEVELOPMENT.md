@@ -81,6 +81,49 @@
 
 ### 2025-08-28
 
+**Code Modularization Plan - Comprehensive Refactoring Roadmap**
+
+Added detailed step-by-step plan to modularize 5 large TypeScript/React files (1,777 total lines) into maintainable, testable modules following 2024-2025 best practices.
+
+**Target Outcomes:**
+
+- 60% reduction in average file size
+- 40% reduction in cyclomatic complexity
+- 80%+ test coverage across all modules
+- Improved developer experience with clear module boundaries
+- Enhanced maintainability through single-responsibility modules
+- Better performance through strategic code splitting
+
+**8-Phase Implementation Plan:**
+
+**Phase 1: Low Risk, Immediate Benefits**
+
+- [✅] Phase 1.1: Extract PitchProcessingService schemas to separate file
+- [ ] Phase 1.2: Extract speechmatics-transcribe config constants
+- [ ] Phase 1.3: Extract ScenarioInput form state hook
+- [ ] Phase 1.4: Extract MeetingInterface UI state hook
+
+**Phase 2: Service Layer & Handler Splitting (Medium Risk, High Impact)**
+
+- [ ] Phase 2.1: Create meetingApi service from MeetingInterface
+- [ ] Phase 2.2: Extract ValidationService from speechmatics
+- [ ] Phase 2.3: Split in-meeting.ts handlers by request type
+- [ ] Phase 2.4: Extract AI services from PitchProcessingService
+
+**Detailed Implementation Steps:**
+
+- Each phase includes sub-steps with exact line numbers and code changes
+- Verification steps after each modification
+- TypeScript compilation checks throughout
+- Incremental approach maintaining functionality
+- Risk-conscious refactoring with easy rollback options
+
+**Current Status**: Phase 1.1 completed successfully
+
+- PitchProcessingService.ts: 276 → 242 lines (-34 lines, -12%)
+- Created new schemas.ts: 40 lines with flexible validation (removed restrictive enums)
+- Improved organization and reusability
+
 **80/20 ServiceRegistry Prioritization**
 
 - Applied 80/20 principle to ServiceRegistry implementation - identified 4-hour effort for 80% of reliability benefits
