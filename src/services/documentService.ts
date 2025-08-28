@@ -61,7 +61,15 @@ class DocumentService {
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
           const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item: { str: string }) => item.str).join(' ');
+          const pageText = textContent.items
+            .map((item: unknown) => {
+              if (typeof item === 'object' && 'str' in item) {
+                return item.str;
+              }
+              return '';
+            })
+            .filter((str) => str.length > 0)
+            .join(' ');
           fullText += pageText + '\n';
         }
 
@@ -144,7 +152,17 @@ class DocumentService {
    * Generate meeting context from documents
    */
   generateMeetingContext(documents: MeetingDocument[]): string {
-    return documentProcessor.generateMeetingContext(documents);
+    // Filter out documents without summaries and ensure proper typing
+    const validDocuments = documents
+      .filter((doc) => doc.summary)
+      .map((doc) => ({
+        filename: doc.filename,
+        summary: doc.summary!,
+        keyPoints: doc.keyPoints,
+        extractedData: doc.extractedData,
+      }));
+
+    return documentProcessor.generateMeetingContext(validDocuments);
   }
 
   /**

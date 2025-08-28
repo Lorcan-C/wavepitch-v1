@@ -55,7 +55,16 @@ export default async function handler(req: Request) {
     }
 
     // Get enhanced meeting setup prompt from Langfuse
-    const meetingSetupPrompt = await getLangfusePrompt('enhanced-meeting-setup');
+    let meetingSetupPrompt;
+    let expertOpeningPrompt;
+
+    try {
+      meetingSetupPrompt = await getLangfusePrompt('enhanced-meeting-setup');
+      expertOpeningPrompt = await getLangfusePrompt('expert-opening-message');
+    } catch (promptError) {
+      console.error('Langfuse prompt not found:', promptError);
+      throw new Error('Required prompts not configured. Please check Langfuse setup.');
+    }
 
     // Generate complete meeting setup
     const meetingSetup = await generateObject({
@@ -66,9 +75,6 @@ export default async function handler(req: Request) {
         meetingType,
       }),
     });
-
-    // Get expert opening prompt from Langfuse
-    const expertOpeningPrompt = await getLangfusePrompt('expert-opening-message');
 
     // Pre-generate opening messages for smooth demo start
     const openingMessages = await Promise.all(

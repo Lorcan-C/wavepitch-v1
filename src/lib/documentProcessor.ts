@@ -27,8 +27,23 @@ export class DocumentProcessor {
         modelId: 'gpt-4o-mini',
       });
 
-      console.log(`Extracted ${result.extractions.length} entities from ${filename}`);
-      return result.extractions;
+      const extractions = Array.isArray(result)
+        ? result[0]?.extractions || []
+        : result.extractions || [];
+      console.log(`Extracted ${extractions.length} entities from ${filename}`);
+
+      // Map langextract Extraction type to our ExtractedEntity type
+      return extractions.map(
+        (extraction: {
+          extractionClass?: string;
+          extractionText?: string;
+          attributes?: Record<string, unknown>;
+        }) => ({
+          extractionClass: extraction.extractionClass || '',
+          extractionText: extraction.extractionText || '',
+          attributes: extraction.attributes || {},
+        }),
+      );
     } catch (error) {
       console.error('Error extracting entities:', error);
       return [];
