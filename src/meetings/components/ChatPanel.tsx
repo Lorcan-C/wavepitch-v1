@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { MessageSquare, Users } from 'lucide-react';
 
+import { KeyboardShortcutHint } from '../../components/ui/keyboard-shortcut-hint';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { Message } from '../types';
 import { ChatInput } from './ChatInput';
@@ -127,6 +128,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               {isLoading && !isStreaming && <ThinkingIndicator />}
             </>
           )}
+
+          {/* Keyboard shortcuts hint */}
+          <KeyboardShortcutHint hasMessages={messages.length > 0} />
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>

@@ -7,6 +7,7 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useTTS } from '@/hooks/useTTS';
 import { voiceAssigner } from '@/services/voice';
 
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { Message, Participant, SpeakerQueueItem, User } from '../types';
 import { ChatFAB } from './ChatFAB';
@@ -359,6 +360,20 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     console.log('Mic toggled');
     setIsMicActive((prev) => !prev);
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'KeyL',
+      handler: handleNextSpeaker,
+      description: 'Skip to next speaker',
+    },
+    {
+      key: 'Space',
+      handler: handleToggleMic,
+      description: 'Toggle microphone',
+    },
+  ]);
 
   const handleToggleMute = () => {
     console.log('Mute toggled');

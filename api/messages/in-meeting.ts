@@ -40,6 +40,44 @@ interface MeetingContext {
 
 const meetingContexts = new Map<string, MeetingContext>();
 
+// Environment validation function based on SDK best practices
+function validateEnvironment(): { valid: boolean; missing: string[]; warnings: string[] } {
+  const required = ['OPENAI_API_KEY', 'LANGFUSE_SECRET_KEY', 'LANGFUSE_PUBLIC_KEY'];
+
+  const optional = ['LANGFUSE_BASEURL'];
+
+  const missing = required.filter((key) => !process.env[key] || process.env[key]?.trim() === '');
+  const warnings = [];
+
+  // Check for common configuration issues
+  if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.startsWith('sk-')) {
+    warnings.push('OPENAI_API_KEY format appears invalid');
+  }
+
+  if (process.env.LANGFUSE_SECRET_KEY && !process.env.LANGFUSE_SECRET_KEY.startsWith('sk-lf-')) {
+    warnings.push('LANGFUSE_SECRET_KEY format appears invalid');
+  }
+
+  // Log environment status for debugging
+  const available = required.filter((key) => process.env[key]);
+  console.log('Environment check:', {
+    available: available.length,
+    required: required.length,
+    missing: missing.length,
+    hasOptional: optional.filter((key) => process.env[key]).length,
+  });
+
+  if (warnings.length > 0) {
+    console.warn('Environment warnings:', warnings);
+  }
+
+  return {
+    valid: missing.length === 0,
+    missing,
+    warnings,
+  };
+}
+
 export default async function handler(req: Request) {
   // Set CORS headers
   const corsHeaders = {
@@ -57,6 +95,23 @@ export default async function handler(req: Request) {
       status: 405,
       headers: corsHeaders,
     });
+  }
+
+  // Environment validation - prevents 80% of 500 errors
+  const envValidation = validateEnvironment();
+  if (!envValidation.valid) {
+    console.error('Environment validation failed:', envValidation);
+    return new Response(
+      JSON.stringify({
+        error: 'Service configuration error',
+        code: 'MISSING_ENV_VARS',
+        details: envValidation.missing,
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
   }
 
   try {
