@@ -4,6 +4,8 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useNavigate } from 'react-router-dom';
 
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
+import { useTTS } from '@/hooks/useTTS';
+import { voiceAssigner } from '@/services/voice';
 
 import { Message, Participant, SpeakerQueueItem, User } from '../types';
 import { ChatHeader } from './ChatHeader';
@@ -71,6 +73,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     lastTruncation: null as number | null,
   });
 
+  // TTS integration
+  const { speak } = useTTS();
+
   // Speaker queue with real participant data
   const speakerQueue: SpeakerQueueItem[] = [
     { id: user.id, name: user.name, avatar: user.avatar, position: 0 },
@@ -105,6 +110,11 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             },
           }),
         });
+
+        // Assign voices to AI participants
+        voiceAssigner.assignVoices(meetingId, participants);
+        console.log('Voice assignments created for session:', meetingId);
+
         setSessionId(meetingId);
       } catch (error) {
         console.error('Failed to initialize meeting context:', error);
@@ -150,6 +160,15 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         setMessages((prev) => [...prev, completedMessage]);
         setStreamingMessage('');
+
+        // Generate TTS with participant-specific voice
+        try {
+          const assignedVoice = voiceAssigner.getVoice(sessionId || meetingId, expertId);
+          await speak(streamedContent, { voice: assignedVoice });
+          console.log(`TTS generated for ${expertName} with voice: ${assignedVoice}`);
+        } catch (ttsError) {
+          console.error('TTS generation failed:', ttsError);
+        }
       } catch (error) {
         console.error('Streaming error:', error);
       } finally {
@@ -308,6 +327,17 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             senderName: data.nextSpeakerName,
           };
           setMessages((prev) => [...prev, transitionMessage]);
+
+          // Generate TTS for pre-generated response
+          try {
+            const assignedVoice = voiceAssigner.getVoice(sessionId || meetingId, data.nextSpeaker);
+            await speak(data.preGeneratedResponse, { voice: assignedVoice });
+            console.log(
+              `TTS generated for transition by ${data.nextSpeakerName} with voice: ${assignedVoice}`,
+            );
+          } catch (ttsError) {
+            console.error('Transition TTS generation failed:', ttsError);
+          }
         }
       } else {
         // Fallback to simple rotation
@@ -342,6 +372,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const handleEndMeeting = () => {
     console.log('End meeting requested');
     if (window.confirm('Are you sure you want to end this meeting?')) {
+      // Cleanup voice assignments
+      voiceAssigner.clearSession(sessionId || meetingId);
+      console.log('Voice assignments cleared for session');
       navigate('/app');
     }
   };

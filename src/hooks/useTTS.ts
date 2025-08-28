@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
 
-type Voice = 'alloy' | 'echo' | 'fable' | 'nova' | 'onyx' | 'shimmer';
+import { OpenAIVoice } from '@/services/voice/types';
 
 export function useTTS() {
   const [loading, setLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const speak = useCallback(async (text: string, opts?: { voice?: Voice }) => {
+  const speak = useCallback(async (text: string, opts?: { voice?: OpenAIVoice }) => {
     setLoading(true);
     try {
       const res = await fetch('/api/tts', {
