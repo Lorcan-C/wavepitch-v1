@@ -1,24 +1,4 @@
-import { generateObject, generateText } from 'ai';
-import { z } from 'zod';
-
-import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
-import { getLangfusePrompt } from '../../src/lib/langfuse';
-
-// Enhanced schemas for MVP demo
-const MeetingSetupSchema = z.object({
-  meetingPurpose: z.string(),
-  meetingContext: z.string(),
-  duration: z.number(), // minutes
-  experts: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      role: z.string(),
-      expertise: z.string(),
-      bio: z.string(),
-    }),
-  ),
-});
+import { PitchProcessingService } from '../../src/services/PitchProcessingService';
 
 export default async function handler(req: Request) {
   // Set CORS headers
@@ -40,7 +20,7 @@ export default async function handler(req: Request) {
   }
 
   try {
-    const { pitchDescription, meetingType = 'pitch' } = await req.json();
+    const { pitchDescription, meetingType = 'pitch', documents = [] } = await req.json();
 
     if (!pitchDescription || typeof pitchDescription !== 'string') {
       return new Response(
@@ -79,42 +59,11 @@ export default async function handler(req: Request) {
       );
     }
 
-    // Get enhanced meeting setup prompt from Langfuse
-    let meetingSetupPrompt;
-    let expertOpeningPrompt;
-
-    try {
-      meetingSetupPrompt = await getLangfusePrompt('enhanced-meeting-setup');
-      expertOpeningPrompt = await getLangfusePrompt('expert-opening-message');
-    } catch (promptError) {
-      console.error('Langfuse prompt not found:', promptError);
-      throw new Error('Required prompts not configured. Please check Langfuse setup.');
-    }
-
-    // Generate complete meeting setup
-    const meetingSetup = await generateObject({
-      model: DEFAULT_TEXT_MODEL,
-      schema: MeetingSetupSchema,
-      prompt: meetingSetupPrompt.compile({
-        pitchDescription,
-        meetingType,
-      }),
-    });
-
-    // Pre-generate opening messages for smooth demo start
-    const openingMessages = await Promise.all(
-      meetingSetup.object.experts.map((expert) =>
-        generateText({
-          model: DEFAULT_TEXT_MODEL,
-          prompt: expertOpeningPrompt.compile({
-            expertName: expert.name,
-            expertRole: expert.role,
-            expertise: expert.expertise,
-            meetingType,
-            pitchDescription,
-          }),
-        }),
-      ),
+    // Use the modular PitchProcessingService
+    const result = await PitchProcessingService.processPitchFlow(
+      pitchDescription,
+      meetingType,
+      documents,
     );
 
     const sessionId = crypto.randomUUID();
@@ -123,14 +72,9 @@ export default async function handler(req: Request) {
       JSON.stringify({
         success: true,
         sessionId,
-        meetingData: {
-          ...meetingSetup.object,
-          preGeneratedOpenings: openingMessages.map((msg, i) => ({
-            expertId: meetingSetup.object.experts[i].id,
-            message: msg.text,
-            timestamp: Date.now(),
-          })),
-        },
+        meetingData: result.meetingData,
+        processedContext: result.processedContext,
+        metadata: result.metadata,
       }),
       {
         status: 200,
