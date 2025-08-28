@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 
 import { Message, Participant, SpeakerQueueItem, User } from '../types';
@@ -38,6 +40,12 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
   // Expert preview dialog state
   const [showExpertPreview, setShowExpertPreview] = useState(true);
+
+  // Chat panel size state with localStorage persistence
+  const [chatPanelSize, setChatPanelSize] = useState(() => {
+    const saved = localStorage.getItem('meetingChatPanelSize');
+    return saved ? parseInt(saved) : 40; // Default to 40% width
+  });
 
   // Streaming state for real-time AI responses
   const [streamingMessage, setStreamingMessage] = useState<string>('');
@@ -336,65 +344,93 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setShowExpertPreview(true);
   };
 
+  // Panel resize handler
+  const handleChatPanelResize = useCallback((sizes: number[]) => {
+    const chatSize = sizes[1]; // Second panel is chat
+    setChatPanelSize(chatSize);
+    localStorage.setItem('meetingChatPanelSize', chatSize.toString());
+  }, []);
+
   const totalParticipants = participants.length + 1; // +1 for user
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
-      {/* Header */}
-      <ChatHeader
-        meetingTitle={meetingTitle}
-        meetingId={meetingId}
-        participants={participants}
-        user={user}
-        isMuted={isMuted}
-        showSpeakerQueue={showSpeakerQueue}
-        onToggleMute={handleToggleMute}
-        onToggleSpeakerQueue={handleToggleSpeakerQueue}
-        onShowSummary={handleShowSummary}
-        onEndMeeting={handleEndMeeting}
-        onShowExpertPreview={handleShowExpertPreview}
-      />
+    <div className="flex justify-center h-screen overflow-hidden">
+      <div className="w-full max-w-[90rem] flex flex-col h-screen overflow-hidden">
+        {/* Header */}
+        <ChatHeader
+          meetingTitle={meetingTitle}
+          meetingId={meetingId}
+          participants={participants}
+          user={user}
+          isMuted={isMuted}
+          showSpeakerQueue={showSpeakerQueue}
+          onToggleMute={handleToggleMute}
+          onToggleSpeakerQueue={handleToggleSpeakerQueue}
+          onShowSummary={handleShowSummary}
+          onEndMeeting={handleEndMeeting}
+          onShowExpertPreview={handleShowExpertPreview}
+        />
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Video Layout */}
-        <div className="flex-1 overflow-hidden">
-          <VideoCallLayout
-            participants={participants}
-            user={user}
-            currentSpeakerId={currentSpeakerId}
-            nextSpeakerId={nextSpeakerId}
-          />
+        {/* Main Content with Resizable Panels */}
+        <div className="flex-1 flex overflow-hidden">
+          <PanelGroup direction="horizontal" onLayout={handleChatPanelResize} className="h-full">
+            {/* Left Panel: Video Layout with Optional Speaker Queue */}
+            <Panel
+              defaultSize={100 - chatPanelSize}
+              minSize={25}
+              maxSize={75}
+              className="overflow-hidden"
+            >
+              <div className="h-full relative flex">
+                <div className="flex-1">
+                  <VideoCallLayout
+                    participants={participants}
+                    user={user}
+                    currentSpeakerId={currentSpeakerId}
+                    nextSpeakerId={nextSpeakerId}
+                  />
+                </div>
+
+                {/* Speaker Queue positioned within video area */}
+                {showSpeakerQueue && (
+                  <SpeakerQueue
+                    speakers={speakerQueue}
+                    currentSpeakerIndex={currentSpeakerIndex}
+                    onReshuffle={handleReshuffle}
+                    isVisible={showSpeakerQueue}
+                  />
+                )}
+              </div>
+            </Panel>
+
+            {/* Resizable Handle */}
+            <PanelResizeHandle className="w-2 bg-border hover:bg-primary/20 transition-colors duration-200" />
+
+            {/* Right Panel: Chat */}
+            <Panel
+              defaultSize={chatPanelSize}
+              minSize={25}
+              maxSize={75}
+              className="overflow-hidden"
+            >
+              <ChatPanel
+                messages={messages}
+                participantCount={totalParticipants}
+                isLoading={isLoading || isStreaming}
+                isMicActive={isMicActive}
+                onSendMessage={handleSendMessage}
+                onNextSpeaker={handleNextSpeaker}
+                onToggleMic={handleToggleMic}
+                streamingMessage={streamingMessage}
+                isStreaming={isStreaming}
+              />
+            </Panel>
+          </PanelGroup>
         </div>
 
-        {/* Middle: Speaker Queue (Optional) */}
-        {showSpeakerQueue && (
-          <SpeakerQueue
-            speakers={speakerQueue}
-            currentSpeakerIndex={currentSpeakerIndex}
-            onReshuffle={handleReshuffle}
-            isVisible={showSpeakerQueue}
-          />
-        )}
-
-        {/* Right: Chat Panel */}
-        <div className="w-96">
-          <ChatPanel
-            messages={messages}
-            participantCount={totalParticipants}
-            isLoading={isLoading || isStreaming}
-            isMicActive={isMicActive}
-            onSendMessage={handleSendMessage}
-            onNextSpeaker={handleNextSpeaker}
-            onToggleMic={handleToggleMic}
-            streamingMessage={streamingMessage}
-            isStreaming={isStreaming}
-          />
-        </div>
+        {/* Expert Preview Dialog */}
+        <ExpertPreviewDialog open={showExpertPreview} onOpenChange={setShowExpertPreview} />
       </div>
-
-      {/* Expert Preview Dialog */}
-      <ExpertPreviewDialog open={showExpertPreview} onOpenChange={setShowExpertPreview} />
     </div>
   );
 };

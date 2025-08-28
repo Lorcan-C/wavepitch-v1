@@ -11,9 +11,8 @@ interface VideoCallLayoutProps {
 }
 
 const getGridCols = (count: number) => {
-  if (count <= 4) return 'grid-cols-2';
-  if (count <= 9) return 'grid-cols-3';
-  return 'grid-cols-4';
+  if (count <= 2) return 'grid-cols-1';
+  return 'grid-cols-2';
 };
 
 const getSpeakingState = (
@@ -49,13 +48,12 @@ export const VideoCallLayout: React.FC<VideoCallLayoutProps> = ({
   const allParticipants = [userAsParticipant, ...participants];
 
   return (
-    <div className="bg-gray-900 p-6 h-full">
+    <div className="bg-gray-900 p-4 lg:p-6 h-full">
       <div
         className={`
-        grid ${gridCols} gap-4 h-full
-        ${totalParticipants <= 4 ? 'max-w-4xl' : 'max-w-6xl'} 
-        mx-auto content-center
-      `}
+          grid ${gridCols} gap-4 lg:gap-6 h-full
+          max-w-4xl mx-auto content-center
+        `}
       >
         {allParticipants.map((participant) => (
           <ParticipantCard

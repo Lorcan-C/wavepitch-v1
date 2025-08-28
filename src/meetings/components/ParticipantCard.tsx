@@ -41,8 +41,9 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
   return (
     <div
       className={`
-        relative bg-gray-800 rounded-lg p-6 shadow-lg cursor-pointer
+        relative bg-gray-800 rounded-lg p-4 lg:p-6 shadow-lg cursor-pointer
         transition-all duration-200 hover:bg-gray-700 hover:shadow-xl
+        min-h-[200px] w-full aspect-square flex flex-col justify-center
         ${getSpeakingStyles(speakingState)}
       `}
       onClick={() => {
@@ -51,10 +52,11 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
       }}
     >
       {/* Avatar */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-3 lg:mb-4">
         <div
           className={`
-          w-16 h-16 rounded-full flex items-center justify-center text-2xl
+          w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center 
+          text-xl lg:text-2xl
           ${getBackgroundColor(participant.color)}
         `}
         >
@@ -64,8 +66,10 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
 
       {/* Name and Role */}
       <div className="text-center">
-        <h3 className="text-white font-semibold text-lg mb-1">{participant.name}</h3>
-        <p className="text-gray-300 text-sm">{participant.role}</p>
+        <h3 className="text-white font-semibold text-base lg:text-lg mb-1 truncate">
+          {participant.name}
+        </h3>
+        <p className="text-gray-300 text-xs lg:text-sm truncate">{participant.role}</p>
       </div>
 
       {/* Speaking Indicator */}
