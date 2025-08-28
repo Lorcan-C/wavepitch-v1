@@ -131,8 +131,8 @@ export default async function handler(request: Request) {
     const apiKey = process.env.SPEECHMATICS_API_KEY;
     if (!apiKey) {
       console.error('SPEECHMATICS_API_KEY not configured');
-      return new Response(JSON.stringify({ error: 'Transcription service unavailable' }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: 'Transcription service not configured' }), {
+        status: 503,
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -174,15 +174,38 @@ export default async function handler(request: Request) {
     });
   } catch (error) {
     console.error('Request processing error:', error);
-    const message =
-      error instanceof Error && error.message.includes('URL')
-        ? error.message
-        : 'Invalid request data';
 
-    return new Response(JSON.stringify({ error: message }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    let status = 400;
+    let errorMessage = 'Invalid request data';
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+
+      if (message.includes('url')) {
+        status = 400;
+        errorMessage = error.message;
+      } else if (message.includes('private network') || message.includes('access')) {
+        status = 403;
+        errorMessage = 'Access to private networks not allowed';
+      } else if (message.includes('json') || message.includes('parse')) {
+        status = 422;
+        errorMessage = 'Invalid JSON format in request';
+      } else if (message.includes('network') || message.includes('fetch')) {
+        status = 503;
+        errorMessage = 'Unable to connect to transcription service';
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: errorMessage,
+        ...(status >= 500 && error instanceof Error && { debug: error.message }),
+      }),
+      {
+        status,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }
 }
 

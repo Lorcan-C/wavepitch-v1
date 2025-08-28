@@ -95,15 +95,38 @@ export default async function handler(req: Request) {
   } catch (error: unknown) {
     console.error('In-meeting processing failed:', error);
 
-    const errorMessage = error instanceof Error ? error.message : 'Message processing failed';
+    let status = 500;
+    let errorMessage = 'Message processing failed';
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+
+      if (message.includes('rate limit') || message.includes('quota')) {
+        status = 429;
+        errorMessage = 'Service temporarily busy. Please try again shortly.';
+      } else if (message.includes('timeout')) {
+        status = 408;
+        errorMessage = 'Request timeout. Please try again.';
+      } else if (message.includes('unauthorized') || message.includes('invalid api key')) {
+        status = 401;
+        errorMessage = 'Service authentication error.';
+      } else if (message.includes('langfuse') || message.includes('prompt')) {
+        status = 503;
+        errorMessage = 'AI service temporarily unavailable.';
+      } else if (message.includes('json') || message.includes('parse')) {
+        status = 422;
+        errorMessage = 'Invalid request format.';
+      }
+    }
 
     return new Response(
       JSON.stringify({
         success: false,
         error: errorMessage,
+        ...(status === 500 && error instanceof Error && { debug: error.message }),
       }),
       {
-        status: 500,
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     );
@@ -179,12 +202,32 @@ async function handleGenerateResponse(
     });
   } catch (error: unknown) {
     console.error('Response generation failed:', error);
+
+    let status = 500;
+    let errorMessage = 'Failed to generate response';
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+
+      if (message.includes('rate limit') || message.includes('quota')) {
+        status = 429;
+        errorMessage = 'AI service temporarily busy. Please try again shortly.';
+      } else if (message.includes('langfuse') || message.includes('prompt not found')) {
+        status = 404;
+        errorMessage = 'AI prompts not configured properly.';
+      } else if (message.includes('timeout')) {
+        status = 408;
+        errorMessage = 'Response generation timeout.';
+      }
+    }
+
     return new Response(
       JSON.stringify({
-        error: 'Failed to generate response',
+        error: errorMessage,
+        ...(status === 500 && error instanceof Error && { debug: error.message }),
       }),
       {
-        status: 500,
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     );
@@ -244,12 +287,29 @@ async function handleAdvanceSpeaker(
     );
   } catch (error: unknown) {
     console.error('Speaker advancement failed:', error);
+
+    let status = 500;
+    let errorMessage = 'Failed to advance speaker';
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+
+      if (message.includes('langfuse') || message.includes('prompt not found')) {
+        status = 404;
+        errorMessage = 'Speaker transition prompts not configured.';
+      } else if (message.includes('rate limit')) {
+        status = 429;
+        errorMessage = 'Service busy. Please try again.';
+      }
+    }
+
     return new Response(
       JSON.stringify({
-        error: 'Failed to advance speaker',
+        error: errorMessage,
+        ...(status === 500 && error instanceof Error && { debug: error.message }),
       }),
       {
-        status: 500,
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     );
