@@ -7,11 +7,13 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useTTS } from '@/hooks/useTTS';
 import { voiceAssigner } from '@/services/voice';
 
+import { useIsDesktop } from '../hooks/useIsDesktop';
 import { Message, Participant, SpeakerQueueItem, User } from '../types';
+import { ChatFAB } from './ChatFAB';
 import { ChatHeader } from './ChatHeader';
-import { ChatPanel } from './ChatPanel';
-import { SpeakerQueue } from './SpeakerQueue';
-import { VideoCallLayout } from './VideoCallLayout';
+import { ChatOverlay } from './ChatOverlay';
+import { MeetingChatPanel } from './MeetingChatPanel';
+import { VideoGridWithQueue } from './VideoGridWithQueue';
 
 interface MeetingInterfaceProps {
   meetingId: string;
@@ -33,12 +35,15 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   nextSpeakerId,
 }) => {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
+
   // UI State
   const [isMuted, setIsMuted] = useState(false);
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
   const [isMicActive, setIsMicActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [isChatOpen, setIsChatOpen] = useState(false); // Mobile chat state
 
   // Sync messages with prop changes
   useEffect(() => {
@@ -416,61 +421,104 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           onShowExpertPreview={handleShowExpertPreview}
         />
 
-        {/* Main Content with Resizable Panels */}
+        {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          <PanelGroup direction="horizontal" onLayout={handleChatPanelResize} className="h-full">
-            {/* Left Panel: Video Layout with Optional Speaker Queue */}
-            <Panel
-              defaultSize={100 - chatPanelSize}
-              minSize={25}
-              maxSize={75}
-              className="overflow-hidden"
-            >
-              <div className="h-full relative flex">
-                <div className="flex-1">
-                  <VideoCallLayout
-                    participants={participants}
-                    user={user}
-                    currentSpeakerId={currentSpeakerId}
-                    nextSpeakerId={nextSpeakerId}
-                  />
+          {isDesktop ? (
+            /* Desktop Layout with Resizable Panels */
+            <PanelGroup direction="horizontal" onLayout={handleChatPanelResize} className="h-full">
+              {/* Left Panel: Video Layout with Optional Speaker Queue */}
+              <Panel
+                defaultSize={100 - chatPanelSize}
+                minSize={25}
+                maxSize={75}
+                className="overflow-hidden"
+              >
+                <div className="h-full relative flex">
+                  <div className="flex-1">
+                    <VideoCallLayout
+                      participants={participants}
+                      user={user}
+                      currentSpeakerId={currentSpeakerId}
+                      nextSpeakerId={nextSpeakerId}
+                    />
+                  </div>
+
+                  {/* Speaker Queue positioned within video area */}
+                  {showSpeakerQueue && (
+                    <SpeakerQueue
+                      speakers={speakerQueue}
+                      currentSpeakerIndex={currentSpeakerIndex}
+                      onReshuffle={handleReshuffle}
+                      isVisible={showSpeakerQueue}
+                    />
+                  )}
                 </div>
+              </Panel>
 
-                {/* Speaker Queue positioned within video area */}
-                {showSpeakerQueue && (
-                  <SpeakerQueue
-                    speakers={speakerQueue}
-                    currentSpeakerIndex={currentSpeakerIndex}
-                    onReshuffle={handleReshuffle}
-                    isVisible={showSpeakerQueue}
-                  />
-                )}
-              </div>
-            </Panel>
+              {/* Resizable Handle */}
+              <PanelResizeHandle className="w-2 bg-border hover:bg-primary/20 transition-colors duration-200" />
 
-            {/* Resizable Handle */}
-            <PanelResizeHandle className="w-2 bg-border hover:bg-primary/20 transition-colors duration-200" />
-
-            {/* Right Panel: Chat */}
-            <Panel
-              defaultSize={chatPanelSize}
-              minSize={25}
-              maxSize={75}
-              className="overflow-hidden"
-            >
-              <ChatPanel
-                messages={messages}
-                participantCount={totalParticipants}
-                isLoading={isLoading || isStreaming}
-                isMicActive={isMicActive}
-                onSendMessage={handleSendMessage}
-                onNextSpeaker={handleNextSpeaker}
-                onToggleMic={handleToggleMic}
-                streamingMessage={streamingMessage}
-                isStreaming={isStreaming}
+              {/* Right Panel: Chat */}
+              <Panel
+                defaultSize={chatPanelSize}
+                minSize={25}
+                maxSize={75}
+                className="overflow-hidden"
+              >
+                <MeetingChatPanel
+                  messages={messages}
+                  totalParticipants={totalParticipants}
+                  isLoading={isLoading}
+                  isStreaming={isStreaming}
+                  isMicActive={isMicActive}
+                  streamingMessage={streamingMessage}
+                  onSendMessage={handleSendMessage}
+                  onNextSpeaker={handleNextSpeaker}
+                  onToggleMic={handleToggleMic}
+                />
+              </Panel>
+            </PanelGroup>
+          ) : (
+            /* Mobile Layout */
+            <>
+              {/* Video Grid takes full screen */}
+              <VideoGridWithQueue
+                participants={participants}
+                user={user}
+                currentSpeakerId={currentSpeakerId}
+                nextSpeakerId={nextSpeakerId}
+                showSpeakerQueue={showSpeakerQueue}
+                speakerQueue={speakerQueue}
+                currentSpeakerIndex={currentSpeakerIndex}
+                onReshuffle={handleReshuffle}
               />
-            </Panel>
-          </PanelGroup>
+
+              {/* Mobile Chat FAB */}
+              {!isChatOpen && (
+                <ChatFAB
+                  onClick={() => setIsChatOpen(true)}
+                  unreadCount={0} // TODO: Add unread message tracking
+                />
+              )}
+
+              {/* Mobile Chat Overlay */}
+              {isChatOpen && (
+                <ChatOverlay onClose={() => setIsChatOpen(false)}>
+                  <ChatPanel
+                    messages={messages}
+                    participantCount={totalParticipants}
+                    isLoading={isLoading || isStreaming}
+                    isMicActive={isMicActive}
+                    onSendMessage={handleSendMessage}
+                    onNextSpeaker={handleNextSpeaker}
+                    onToggleMic={handleToggleMic}
+                    streamingMessage={streamingMessage}
+                    isStreaming={isStreaming}
+                  />
+                </ChatOverlay>
+              )}
+            </>
+          )}
         </div>
 
         {/* Expert Preview Dialog */}
