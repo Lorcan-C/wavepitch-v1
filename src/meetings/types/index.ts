@@ -3,8 +3,12 @@ export interface Participant {
   name: string;
   role: string;
   avatar: string;
-  color: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red';
+  color: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red' | string;
   description?: string;
+  isUser?: boolean;
+  isSpeaking?: boolean;
+  isNextToSpeak?: boolean;
+  isListening?: boolean;
 }
 
 export interface User {

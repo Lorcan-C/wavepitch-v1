@@ -18,9 +18,9 @@ export const VideoCallLayout: React.FC<VideoCallLayoutProps> = ({
   user,
   currentSpeakerId,
   nextSpeakerId,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   onParticipantClick,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   onParticipantDoubleClick,
   onUserClick,
 }) => {
@@ -83,6 +83,8 @@ export const VideoCallLayout: React.FC<VideoCallLayoutProps> = ({
                         : 'waiting'
                 }
                 onClick={participant.isUser ? onUserClick : undefined}
+                onPersonaClick={!participant.isUser ? onParticipantClick : undefined}
+                onPersonaDoubleClick={!participant.isUser ? onParticipantDoubleClick : undefined}
               />
             ) : (
               <div className="h-full bg-muted/20 rounded-lg border border-dashed border-muted-foreground/20 flex items-center justify-center">

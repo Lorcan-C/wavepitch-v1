@@ -1,103 +1,49 @@
 import React, { useEffect, useState } from 'react';
 
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { getInitials } from '../../lib/getInitials';
+import { useMeetingStore } from '../../stores/meeting-store';
 import { MeetingInterface } from '../components/MeetingInterface';
 import { Message, Participant, User } from '../types';
 
-// Mock data
-const mockParticipants: Participant[] = [
-  { id: '1', name: 'Sarah Chen', role: 'Product Manager', avatar: '👩', color: 'purple' },
-  { id: '2', name: 'Marcus Johnson', role: 'Engineering Lead', avatar: '👨', color: 'blue' },
-  { id: '3', name: 'Rita Patel', role: 'Designer', avatar: '👩', color: 'pink' },
-  { id: '4', name: 'James Wilson', role: 'Data Scientist', avatar: '👨', color: 'green' },
-];
-
-const mockUser: User = {
-  id: 'user-1',
-  name: 'You',
-  avatar: '🙂',
-  color: 'blue',
-};
-
-const mockMessages: Message[] = [
-  {
-    id: '1',
-    content:
-      "Welcome everyone to our product planning meeting. Today we'll be discussing our Q2 roadmap and prioritizing the key features for our next release.",
-    sender: '1',
-    isUser: false,
-    timestamp: Date.now() - 300000,
-    senderName: 'Sarah Chen',
-  },
-  {
-    id: '2',
-    content:
-      "Thanks Sarah! I've prepared some technical feasibility notes for the features we discussed last week.",
-    sender: '2',
-    isUser: false,
-    timestamp: Date.now() - 240000,
-    senderName: 'Marcus Johnson',
-  },
-  {
-    id: '3',
-    content:
-      'Great! I have some user research insights that might help us prioritize. Should I share those first?',
-    sender: 'user-1',
-    isUser: true,
-    timestamp: Date.now() - 180000,
-    senderName: 'You',
-  },
-  {
-    id: '4',
-    content:
-      'Yes, that would be perfect. User insights should definitely guide our technical decisions.',
-    sender: '1',
-    isUser: false,
-    timestamp: Date.now() - 120000,
-    senderName: 'Sarah Chen',
-  },
-  {
-    id: '5',
-    content:
-      "I've also been analyzing the performance metrics from our current features. There are some interesting patterns in user engagement.",
-    sender: '4',
-    isUser: false,
-    timestamp: Date.now() - 60000,
-    senderName: 'James Wilson',
-  },
-];
-
 export const MeetingPage: React.FC = () => {
   const { meetingId } = useParams<{ meetingId: string }>();
-  const [participants, setParticipants] = useState<Participant[]>(mockParticipants);
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
-  const [meetingTitle, setMeetingTitle] = useState('Product Planning Meeting');
+  const navigate = useNavigate();
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const loadMeeting = useMeetingStore((state) => state.loadMeeting);
 
   // Load meeting data from stored session
   useEffect(() => {
-    const loadMeetingData = () => {
+    const loadMeetingData = async () => {
       try {
         setIsLoading(true);
 
         // Load from stored session data
         const storedSession = sessionStorage.getItem('meetingSession');
         if (!storedSession) {
-          throw new Error('No meeting session found. Please start a new meeting.');
+          console.error('No meeting session found');
+          navigate('/app');
+          return;
         }
 
         const sessionData = JSON.parse(storedSession);
 
         // Check if this is the correct session
         if (sessionData.sessionId !== meetingId) {
-          throw new Error('Meeting session mismatch. Please start a new meeting.');
+          console.error('Meeting session mismatch');
+          navigate('/app');
+          return;
         }
 
         if (!sessionData.meetingData) {
-          throw new Error('Invalid meeting data. Please start a new meeting.');
+          console.error('Invalid meeting data');
+          navigate('/app');
+          return;
         }
 
         console.log('Loading meeting from stored session:', sessionData);
@@ -112,6 +58,7 @@ export const MeetingPage: React.FC = () => {
             id: expert.id,
             name: expert.name,
             role: expert.role,
+            description: expert.bio || expert.expertise || '',
             avatar: getInitials(expert.name),
             color: ['purple', 'blue', 'pink', 'green', 'yellow'][index % 5] as Participant['color'],
           }),
@@ -131,20 +78,37 @@ export const MeetingPage: React.FC = () => {
             }),
           ) || [];
 
+        // Create user object
+        const userData: User = {
+          id: 'user-1',
+          name: 'You',
+          avatar: getInitials('You'),
+          color: 'blue',
+        };
+
+        setUser(userData);
         setParticipants(apiParticipants);
         setMessages(initialMessages);
         setMeetingTitle(data.meetingPurpose || 'AI Business Meeting');
+
+        // Also populate the meeting store for ExpertPreviewDialog
+        loadMeeting({
+          meetingId: meetingId!,
+          sessionId: sessionData.sessionId,
+          meetingTitle: data.meetingPurpose || 'AI Business Meeting',
+          participants: apiParticipants,
+          messages: initialMessages,
+        });
       } catch (error) {
         console.error('Error loading meeting data:', error);
-        setError('Failed to load meeting. Using default data.');
-        // Keep mock data as fallback
+        navigate('/app');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadMeetingData();
-  }, [meetingId]);
+  }, [meetingId, loadMeeting, navigate]);
 
   // Show loading state
   if (isLoading) {
@@ -158,22 +122,22 @@ export const MeetingPage: React.FC = () => {
     );
   }
 
-  // Show error state
-  if (error) {
-    console.warn('Meeting loading error:', error);
-    // Continue with fallback data
+  // If no user data, redirect (should not happen if loading worked)
+  if (!user) {
+    navigate('/app');
+    return null;
   }
 
-  // Mock current speaker logic - will be managed by the interface
+  // Current speaker logic - will be managed by the interface
   const currentSpeakerId = participants[0]?.id;
-  const nextSpeakerId = mockUser.id;
+  const nextSpeakerId = participants[1]?.id;
 
   return (
     <MeetingInterface
       meetingId={meetingId || 'default-meeting'}
       meetingTitle={meetingTitle}
       participants={participants}
-      user={mockUser}
+      user={user}
       messages={messages}
       currentSpeakerId={currentSpeakerId}
       nextSpeakerId={nextSpeakerId}

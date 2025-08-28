@@ -1,89 +1,164 @@
 import React from 'react';
 
 import { Participant, SpeakingState } from '../types';
+import { useParticipantClickHandlers } from './ParticipantClickHandlers';
+import { ParticipantStatusBadge } from './ParticipantStatusBadge';
+import { ParticipantStatusIndicator } from './ParticipantStatusIndicator';
+import { ParticipantVisualFeedback } from './ParticipantVisualFeedback';
 
 interface ParticipantCardProps {
   participant: Participant;
   speakingState: SpeakingState;
   onClick?: () => void;
+  onPersonaClick?: (participantId: string) => void;
+  onPersonaDoubleClick?: (participantId: string) => void;
 }
 
-const getSpeakingStyles = (state: SpeakingState) => {
-  switch (state) {
-    case 'current':
-      return 'ring-4 ring-green-500';
-    case 'next':
-      return 'ring-4 ring-yellow-500';
-    case 'user':
-      return 'ring-2 ring-blue-500';
-    default:
-      return 'ring-1 ring-gray-300';
-  }
-};
-
-const getBackgroundColor = (color: Participant['color']) => {
-  const colorMap: Record<string, string> = {
-    purple: 'bg-purple-500',
-    blue: 'bg-blue-500',
-    pink: 'bg-pink-500',
-    green: 'bg-green-500',
-    yellow: 'bg-yellow-500',
-    red: 'bg-red-500',
+const getAgentTagline = (role: string): string => {
+  const roleDescriptions: { [key: string]: string } = {
+    'Engagement Manager': 'drives progress & alignment',
+    'Strategy Partner': 'provides strategic insights',
+    'Research Analyst': 'analyzes data & trends',
+    'Financial Advisor': 'offers financial guidance',
+    'Technology Consultant': 'bridges tech & business',
+    'Operations Consultant': 'optimizes processes',
+    'Communications Consultant': 'enhances messaging',
+    'Best Friend': 'provides emotional support',
+    Cousin: 'offers family wisdom',
+    Friend: 'motivates & encourages',
   };
-  return colorMap[color] || 'bg-gray-500';
+
+  return roleDescriptions[role] || 'provides expert guidance';
 };
 
 export const ParticipantCard: React.FC<ParticipantCardProps> = ({
   participant,
   speakingState,
   onClick,
+  onPersonaClick,
+  onPersonaDoubleClick,
 }) => {
+  const isUser = participant.isUser || speakingState === 'user';
+  const isSpeaking = participant.isSpeaking || speakingState === 'current';
+  const isNextToSpeak = participant.isNextToSpeak || speakingState === 'next';
+  const isListening = participant.isListening || false;
+  const isUserSpeaking = isUser && (isSpeaking || isListening);
+
+  const participantColor =
+    typeof participant.color === 'string' && participant.color.startsWith('#')
+      ? participant.color
+      : '#888888';
+
+  const { handleClick, isPersonaClickable, isUserClickable } = useParticipantClickHandlers({
+    isUser,
+    participantId: participant.id,
+    onClick,
+    onPersonaClick,
+    onPersonaDoubleClick,
+  });
+
   return (
     <div
       className={`
-        relative bg-gray-800 rounded-lg p-4 lg:p-6 shadow-lg cursor-pointer
-        transition-all duration-200 hover:bg-gray-700 hover:shadow-xl
-        min-h-[200px] w-full aspect-square flex flex-col justify-center
-        ${getSpeakingStyles(speakingState)}
+        flex flex-col items-center justify-center 
+        border rounded-lg p-4 h-full
+        transition-all duration-300 ease-in-out
+        ${
+          isUserSpeaking
+            ? 'border-red-400 shadow-lg'
+            : isSpeaking
+              ? 'border-primary shadow-lg'
+              : isNextToSpeak
+                ? 'border-indigo-300 shadow-md'
+                : 'border-muted'
+        }
+        ${
+          isUserClickable
+            ? 'bg-primary/10 hover:bg-primary/20 cursor-pointer'
+            : isPersonaClickable
+              ? 'hover:bg-primary/10 cursor-pointer hover:border-primary/50'
+              : 'bg-opacity-10'
+        }
+        relative
       `}
-      onClick={() => {
-        console.log('Participant clicked:', participant.name);
-        onClick?.();
-      }}
+      style={
+        !isUserClickable && !isPersonaClickable
+          ? {
+              backgroundColor: `${participantColor}10`,
+              ...(isNextToSpeak && !isSpeaking
+                ? { borderColor: '#E5DEFF', borderWidth: '2px' }
+                : {}),
+              ...(isUserSpeaking ? { borderColor: '#F87171', borderWidth: '3px' } : {}),
+            }
+          : {}
+      }
+      onClick={handleClick}
+      title={
+        isUserClickable
+          ? 'Click to toggle speech recognition'
+          : isPersonaClickable
+            ? 'Single click: next in queue | Double click: interrupt current speaker'
+            : undefined
+      }
     >
+      <ParticipantStatusIndicator
+        isUser={isUser}
+        isSpeaking={isSpeaking}
+        isNextToSpeak={isNextToSpeak}
+        isListening={isListening}
+      />
+
+      <ParticipantVisualFeedback
+        isUser={isUser}
+        isSpeaking={isSpeaking}
+        isNextToSpeak={isNextToSpeak}
+        isListening={isListening}
+        isUserClickable={isUserClickable}
+        isPersonaClickable={isPersonaClickable}
+      />
+
       {/* Avatar */}
-      <div className="flex justify-center mb-3 lg:mb-4">
+      <div
+        className={`w-16 h-16 mb-2 border-2 shadow-md rounded-full flex items-center justify-center ${
+          isUserSpeaking ? 'border-red-400' : 'border-background'
+        }`}
+      >
         <div
-          className={`
-          w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center 
-          text-xl lg:text-2xl
-          ${getBackgroundColor(participant.color)}
-        `}
+          className="w-full h-full rounded-full flex items-center justify-center text-white text-xl font-medium"
+          style={{
+            backgroundColor: isUser
+              ? isListening
+                ? '#F87171'
+                : 'var(--primary)'
+              : participantColor,
+          }}
         >
           {participant.avatar}
         </div>
       </div>
 
-      {/* Name and Role */}
       <div className="text-center">
-        <h3 className="text-white font-semibold text-base lg:text-lg mb-1 truncate">
-          {participant.name}
-        </h3>
-        <p className="text-gray-300 text-xs lg:text-sm truncate">{participant.role}</p>
+        <h3 className="font-medium text-sm mb-1">{participant.name}</h3>
+
+        {/* Agent role and tagline */}
+        {!isUser && (
+          <div className="text-xs text-muted-foreground mb-2 px-1">
+            <div className="font-medium">{participant.role}</div>
+            <div className="text-[10px] leading-tight opacity-75">
+              {getAgentTagline(participant.role)}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-center mt-1 gap-1.5">
+          <ParticipantStatusBadge
+            isUser={isUser}
+            isSpeaking={isSpeaking}
+            isNextToSpeak={isNextToSpeak}
+            isListening={isListening}
+          />
+        </div>
       </div>
-
-      {/* Speaking Indicator */}
-      {speakingState === 'current' && (
-        <div className="absolute top-2 right-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        </div>
-      )}
-
-      {speakingState === 'next' && (
-        <div className="absolute top-2 right-2">
-          <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-        </div>
-      )}
     </div>
   );
 };
