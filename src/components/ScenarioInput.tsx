@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import { useNavigate } from 'react-router-dom';
+
 import { ArrowLeft } from 'lucide-react';
 
 import { FEATURE_FLAGS } from '../config/featureFlags';
@@ -24,6 +26,7 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Speech-to-text integration
   const {
@@ -137,8 +140,8 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
           }),
         );
 
-        // TODO: Navigate to meeting page
-        console.log('Meeting setup complete - ready to start meeting');
+        console.log('Meeting setup complete - navigating to meeting');
+        navigate(`/app/meeting/${result.sessionId}`);
       } else {
         throw new Error(result.error || 'Meeting setup failed');
       }

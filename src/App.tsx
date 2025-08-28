@@ -4,6 +4,7 @@ import { RedirectToSignIn, SignedIn, SignedOut } from '@clerk/clerk-react';
 
 import { LandingPage } from './components/LandingPage';
 import { RequireApproval } from './components/RequireApproval';
+import { MeetingPage } from './meetings/pages/MeetingPage';
 import HubPage from './pages/hub/HubPage';
 import MeetingsPage from './pages/meetings/MeetingsPage';
 import NewPage from './pages/new/NewPage';
@@ -28,6 +29,7 @@ function App() {
                     <Route index element={<NewPage />} />
                     <Route path="new" element={<NewPage />} />
                     <Route path="meetings" element={<MeetingsPage />} />
+                    <Route path="meeting/:meetingId" element={<MeetingPage />} />
                     <Route path="hub" element={<HubPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                   </Routes>
