@@ -17,6 +17,7 @@ interface ChatHeaderProps {
   onToggleSpeakerQueue: () => void;
   onShowSummary: () => void;
   onEndMeeting: () => void;
+  onShowExpertPreview: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -30,6 +31,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onToggleSpeakerQueue,
   onShowSummary,
   onEndMeeting,
+  onShowExpertPreview,
 }) => {
   const allParticipants = [user, ...participants];
 
@@ -68,6 +70,19 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
         {/* Right: Control Buttons */}
         <div className="flex items-center gap-2">
+          {/* View Experts */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log('View experts clicked');
+              onShowExpertPreview();
+            }}
+            title="View Meeting Experts"
+          >
+            <Users className="h-4 w-4" />
+          </Button>
+
           {/* Mute/Unmute */}
           <Button
             variant={isMuted ? 'destructive' : 'outline'}

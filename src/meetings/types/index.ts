@@ -4,6 +4,7 @@ export interface Participant {
   role: string;
   avatar: string;
   color: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red';
+  description?: string;
 }
 
 export interface User {
@@ -30,3 +31,13 @@ export interface SpeakerQueueItem {
 }
 
 export type SpeakingState = 'current' | 'next' | 'waiting' | 'user';
+
+export interface ExpertApiData {
+  id?: string;
+  name?: string;
+  role?: string;
+  expertise?: string;
+  bio?: string;
+  description?: string;
+  avatar?: string;
+}

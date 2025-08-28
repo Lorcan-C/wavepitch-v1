@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
+
 import { Message, Participant, SpeakerQueueItem, User } from '../types';
 import { ChatHeader } from './ChatHeader';
 import { ChatPanel } from './ChatPanel';
@@ -33,6 +35,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [currentSpeakerIndex, setCurrentSpeakerIndex] = useState(0);
   const [sessionId, setSessionId] = useState<string>('');
+
+  // Expert preview dialog state
+  const [showExpertPreview, setShowExpertPreview] = useState(true);
 
   // Streaming state for real-time AI responses
   const [streamingMessage, setStreamingMessage] = useState<string>('');
@@ -326,6 +331,11 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setCurrentSpeakerIndex(0);
   };
 
+  const handleShowExpertPreview = () => {
+    console.log('Show expert preview requested');
+    setShowExpertPreview(true);
+  };
+
   const totalParticipants = participants.length + 1; // +1 for user
 
   return (
@@ -342,6 +352,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         onToggleSpeakerQueue={handleToggleSpeakerQueue}
         onShowSummary={handleShowSummary}
         onEndMeeting={handleEndMeeting}
+        onShowExpertPreview={handleShowExpertPreview}
       />
 
       {/* Main Content */}
@@ -381,6 +392,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           />
         </div>
       </div>
+
+      {/* Expert Preview Dialog */}
+      <ExpertPreviewDialog open={showExpertPreview} onOpenChange={setShowExpertPreview} />
     </div>
   );
 };

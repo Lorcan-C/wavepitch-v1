@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-import { Message, Participant } from '../meetings/types';
+import { ExpertApiData, Message, Participant } from '../meetings/types';
 
 interface MeetingState {
   meetingId: string;
@@ -28,6 +28,8 @@ interface MeetingActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
+  regenerateParticipants: () => Promise<void>;
+  updateAllParticipants: (participants: Participant[]) => void;
 }
 
 const initialState: MeetingState = {
@@ -43,7 +45,7 @@ const initialState: MeetingState = {
 
 export const useMeetingStore = create<MeetingState & MeetingActions>()(
   persist(
-    immer((set) => ({
+    immer((set, get) => ({
       ...initialState,
 
       loadMeeting: (data) =>
@@ -80,6 +82,61 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
         }),
 
       reset: () => set(() => initialState),
+
+      regenerateParticipants: async () => {
+        set((state) => {
+          state.isLoading = true;
+          state.error = null;
+        });
+
+        try {
+          const response = await fetch('/api/messages/pre-meeting', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pitchDescription: get().meetingTitle,
+              meetingType: 'pitch',
+              generateExpertsOnly: true,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          if (result.success && result.meetingData?.experts) {
+            set((state) => {
+              state.participants = result.meetingData.experts.map(
+                (expert: ExpertApiData, index: number) => ({
+                  id: expert.id || `expert-${index}`,
+                  name: expert.name || `Expert ${index + 1}`,
+                  role: expert.role || expert.expertise || 'Expert',
+                  description: expert.bio || expert.expertise || expert.description || '',
+                  avatar: expert.avatar || ['👨', '👩', '🧑‍💼', '👨‍💻', '👩‍💻'][index % 5],
+                  color: (['purple', 'blue', 'pink', 'green', 'yellow'] as const)[index % 5],
+                }),
+              );
+            });
+          } else {
+            throw new Error('Invalid response format');
+          }
+        } catch (error) {
+          console.error('Failed to regenerate participants:', error);
+          set((state) => {
+            state.error = 'Failed to regenerate experts. Please try again.';
+          });
+        } finally {
+          set((state) => {
+            state.isLoading = false;
+          });
+        }
+      },
+
+      updateAllParticipants: (participants) =>
+        set((state) => {
+          state.participants = participants;
+        }),
     })),
     {
       name: 'meeting-storage',
