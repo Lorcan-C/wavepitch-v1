@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { useNavigate } from 'react-router-dom';
 
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 
@@ -29,6 +30,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   currentSpeakerId,
   nextSpeakerId,
 }) => {
+  const navigate = useNavigate();
   // UI State
   const [isMuted, setIsMuted] = useState(false);
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
@@ -330,7 +332,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const handleEndMeeting = () => {
     console.log('End meeting requested');
     if (window.confirm('Are you sure you want to end this meeting?')) {
-      // Navigate back or handle end meeting
+      navigate('/app');
     }
   };
 
