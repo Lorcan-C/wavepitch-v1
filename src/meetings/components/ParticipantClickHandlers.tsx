@@ -51,7 +51,7 @@ export const useParticipantClickHandlers = ({
 
   return {
     handleClick,
-    isPersonaClickable: !isUser && (onPersonaClick || onPersonaDoubleClick),
-    isUserClickable: isUser && onClick,
+    isPersonaClickable: !isUser && !!(onPersonaClick || onPersonaDoubleClick),
+    isUserClickable: isUser && !!onClick,
   };
 };
