@@ -37,6 +37,16 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [isMicActive, setIsMicActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+
+  // Sync messages with prop changes
+  useEffect(() => {
+    console.log(
+      'MeetingInterface: Syncing messages with prop changes',
+      initialMessages.length,
+      'messages',
+    );
+    setMessages(initialMessages);
+  }, [initialMessages]);
   const [currentSpeakerIndex, setCurrentSpeakerIndex] = useState(0);
   const [sessionId, setSessionId] = useState<string>('');
 
