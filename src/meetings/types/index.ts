@@ -31,6 +31,7 @@ export interface Message {
   isAnimated?: boolean;
   isTyping?: boolean;
   conversationId?: string;
+  audioUrl?: string;
   aiGeneration?: {
     generationSuccess: boolean;
     retryCount: number;

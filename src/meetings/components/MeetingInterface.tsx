@@ -4,7 +4,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useNavigate } from 'react-router-dom';
 
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
-import { useTTS } from '@/hooks/useTTS';
+import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { voiceAssigner } from '@/services/voice';
 
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -79,8 +79,10 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     lastTruncation: null as number | null,
   });
 
-  // TTS integration
-  const { speak } = useTTS();
+  // Audio integration - automatically generates and plays audio for new messages
+  const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants, {
+    autoPlay: !isMuted,
+  });
 
   // Speaker queue with real participant data
   const speakerQueue: SpeakerQueueItem[] = [
@@ -166,15 +168,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         setMessages((prev) => [...prev, completedMessage]);
         setStreamingMessage('');
-
-        // Generate TTS with participant-specific voice
-        try {
-          const assignedVoice = voiceAssigner.getVoice(sessionId || meetingId, expertId);
-          await speak(streamedContent, { voice: assignedVoice });
-          console.log(`TTS generated for ${expertName} with voice: ${assignedVoice}`);
-        } catch (ttsError) {
-          console.error('TTS generation failed:', ttsError);
-        }
       } catch (error) {
         console.error('Streaming error:', error);
       } finally {
@@ -333,17 +326,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             senderName: data.nextSpeakerName,
           };
           setMessages((prev) => [...prev, transitionMessage]);
-
-          // Generate TTS for pre-generated response
-          try {
-            const assignedVoice = voiceAssigner.getVoice(sessionId || meetingId, data.nextSpeaker);
-            await speak(data.preGeneratedResponse, { voice: assignedVoice });
-            console.log(
-              `TTS generated for transition by ${data.nextSpeakerName} with voice: ${assignedVoice}`,
-            );
-          } catch (ttsError) {
-            console.error('Transition TTS generation failed:', ttsError);
-          }
         }
       } else {
         // Fallback to simple rotation
@@ -471,7 +453,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
                 className="overflow-hidden"
               >
                 <MeetingChatPanel
-                  messages={messages}
+                  messages={messagesWithAudio}
                   totalParticipants={totalParticipants}
                   isLoading={isLoading}
                   isStreaming={isStreaming}
