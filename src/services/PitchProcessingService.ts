@@ -2,7 +2,7 @@ import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
 import { DEFAULT_TEXT_MODEL } from '../lib/ai';
-import { getLangfusePrompt } from '../lib/langfuse';
+import { ServerPromptService } from './ServerPromptService';
 import {
   type MeetingSetup,
   MeetingSetupSchema,
@@ -20,26 +20,6 @@ export interface PitchProcessingResult {
 }
 
 export class PitchProcessingService {
-  // Cache for Langfuse prompts to avoid repeated fetches
-  private static promptCache = new Map<
-    string,
-    { compile: (data: Record<string, string>) => string } | null
-  >();
-
-  /**
-   * Get cached Langfuse prompt
-   */
-  private static async getLangfusePromptCached(name: string) {
-    if (!this.promptCache.has(name)) {
-      try {
-        const prompt = await getLangfusePrompt(name);
-        this.promptCache.set(name, prompt);
-      } catch {
-        this.promptCache.set(name, null);
-      }
-    }
-    return this.promptCache.get(name);
-  }
   /**
    * Main processing method using Langfuse prompts
    */
@@ -52,7 +32,8 @@ export class PitchProcessingService {
 
     try {
       // Step 1: Get meeting setup prompt only (skip pitch analysis)
-      const meetingSetupPrompt = await this.getLangfusePromptCached('enhanced-meeting-setup');
+      const meetingSetupPrompt =
+        await ServerPromptService.getLangfusePromptCached('enhanced-meeting-setup');
 
       // Step 2: Generate meeting setup using existing Langfuse prompt
       if (!meetingSetupPrompt) {

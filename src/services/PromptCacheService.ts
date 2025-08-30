@@ -1,5 +1,3 @@
-import { getLangfusePrompt } from '../lib/langfuse';
-
 export class PromptCacheService {
   private static readonly PROMPTS_TO_PREFETCH = [
     'pitch-context-analysis',
@@ -15,15 +13,19 @@ export class PromptCacheService {
     try {
       console.log('Pre-fetching prompts...');
 
-      await Promise.allSettled(
-        this.PROMPTS_TO_PREFETCH.map(async (promptName) => {
-          try {
-            await getLangfusePrompt(promptName);
-          } catch (error) {
-            console.warn(`Failed to pre-fetch prompt "${promptName}":`, error);
-          }
+      const response = await fetch('/api/prompts/prefetch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          promptNames: this.PROMPTS_TO_PREFETCH,
         }),
-      );
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to pre-fetch prompts: ${response.status}`);
+      }
 
       console.log('Prompt pre-fetching completed');
     } catch (error) {

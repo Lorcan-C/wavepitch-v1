@@ -2,8 +2,8 @@ import { generateText, streamText } from 'ai';
 import { z } from 'zod';
 
 import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
-import { getLangfusePrompt } from '../../src/lib/langfuse';
 import { MeetingContextService } from '../../src/services/MeetingContextService';
+import { ServerPromptService } from '../../src/services/ServerPromptService';
 
 // Interface for MeetingContext (imported from service)
 interface MeetingContext {
@@ -215,7 +215,7 @@ async function handleGenerateResponse(
 
   try {
     // Get context prompt from Langfuse
-    const contextPrompt = await getLangfusePrompt('in-meeting-response');
+    const contextPrompt = await ServerPromptService.getLangfusePromptCached('in-meeting-response');
 
     // Build conversation context (last 10 messages for performance)
     const recentHistory = (
@@ -317,7 +317,8 @@ async function handleAdvanceSpeaker(
     const nextSpeaker = meetingContext.experts[nextIndex];
 
     // Get transition prompt from Langfuse
-    const transitionPrompt = await getLangfusePrompt('speaker-transition');
+    const transitionPrompt =
+      await ServerPromptService.getLangfusePromptCached('speaker-transition');
 
     // Pre-generate next response for smooth transitions
     const preGeneratedResponse = await generateText({
