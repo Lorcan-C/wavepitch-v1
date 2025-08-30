@@ -13,7 +13,7 @@ export const PitchContextSchema = z.object({
       involvement_level: z.string(), // Simplified from enum to string
     }),
   ),
-  context: z.enum(['workplace', 'pitch', 'general']), // Keeping this one as it's core to meeting types
+  context: z.string().default('pitch'), // Allow any string, default to 'pitch'
   user_role: z.string(),
   key_points: z.array(z.string()),
   meeting_goal: z.string(),
