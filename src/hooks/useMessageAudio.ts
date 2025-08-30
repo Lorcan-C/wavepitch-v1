@@ -17,6 +17,7 @@ export function useMessageAudio(
   const { autoPlay = true, enabled = true } = options;
   const [messagesWithAudio, setMessagesWithAudio] = useState<Message[]>(messages);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
   const playedMessageIds = useRef(new Set<string>());
   const audioQueue = useRef<HTMLAudioElement[]>([]);
   const currentAudio = useRef<HTMLAudioElement | null>(null);
@@ -45,9 +46,29 @@ export function useMessageAudio(
     generateAudioUrls();
   }, [messages, meetingId, participants, enabled]);
 
-  // Auto-play new messages
+  // Set up user interaction detection
   useEffect(() => {
-    if (!autoPlay || !enabled) return;
+    const handleUserInteraction = () => {
+      setUserHasInteracted(true);
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, []);
+
+  // Auto-play new messages only after user interaction
+  useEffect(() => {
+    if (!autoPlay || !enabled || !userHasInteracted) return;
 
     const playNewMessages = async () => {
       const newAudioMessages = messagesWithAudio.filter(
@@ -73,7 +94,7 @@ export function useMessageAudio(
     };
 
     playNewMessages();
-  }, [messagesWithAudio, autoPlay, enabled]);
+  }, [messagesWithAudio, autoPlay, enabled, userHasInteracted]);
 
   const playAudioMessage = (audioUrl: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -124,6 +145,7 @@ export function useMessageAudio(
   return {
     messagesWithAudio,
     isPlaying,
+    userHasInteracted,
     stopAudio,
     playAudioMessage,
   };
