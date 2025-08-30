@@ -195,26 +195,15 @@ export function MeetingSummaryDialog({
             </div>
 
             <div className="grid gap-4">
-              <SummarySection
-                title="Key Ideas"
-                items={summary.keyIdeas}
-                icon={Lightbulb}
-                sectionKey="keyIdeas"
-              />
+              <SummarySection title="Key Ideas" items={summary.keyIdeas} icon={Lightbulb} />
 
               <SummarySection
                 title="Strategic Questions"
                 items={summary.strategicQuestions}
                 icon={HelpCircle}
-                sectionKey="strategicQuestions"
               />
 
-              <SummarySection
-                title="Decisions Made"
-                items={summary.decisions}
-                icon={CheckCircle}
-                sectionKey="decisions"
-              />
+              <SummarySection title="Decisions Made" items={summary.decisions} icon={CheckCircle} />
             </div>
           </div>
         ) : (

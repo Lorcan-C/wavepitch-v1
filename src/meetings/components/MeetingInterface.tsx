@@ -9,6 +9,7 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { voiceAssigner } from '@/services/voice';
 
+import { MeetingSummaryDialog } from '../../components/meetings/MeetingSummaryDialog';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { meetingSummaryService } from '../../services/MeetingSummaryService';
 import { useIsDesktop } from '../hooks/useIsDesktop';
@@ -17,7 +18,6 @@ import { ChatFAB } from './ChatFAB';
 import { ChatHeader } from './ChatHeader';
 import { ChatOverlay } from './ChatOverlay';
 import { MeetingChatPanel } from './MeetingChatPanel';
-import { MeetingSummaryDialog } from './MeetingSummaryDialog';
 import { VideoGridWithQueue } from './VideoGridWithQueue';
 
 interface MeetingInterfaceProps {

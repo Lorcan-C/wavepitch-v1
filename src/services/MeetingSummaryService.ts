@@ -42,8 +42,7 @@ export class MeetingSummaryService {
       const { text } = await generateText({
         model: DEFAULT_TEXT_MODEL,
         prompt,
-        temperature: config.temperature || 0.3,
-        maxTokens: config.maxTokens || 1500,
+        ...config,
       });
 
       // Extract JSON from response
