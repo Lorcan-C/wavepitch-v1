@@ -52,23 +52,10 @@ export class PitchProcessingService {
     const startTime = Date.now();
 
     try {
-      // Step 1: Get Langfuse prompts (cached)
-      const [pitchAnalysisPrompt, meetingSetupPrompt] = await Promise.all([
-        this.getLangfusePromptCached('pitch-context-analysis'),
-        this.getLangfusePromptCached('enhanced-meeting-setup'),
-      ]);
+      // Step 1: Get meeting setup prompt only (skip pitch analysis)
+      const meetingSetupPrompt = await this.getLangfusePromptCached('enhanced-meeting-setup');
 
-      // Step 2: Process pitch context (if we have the prompt)
-      let processedContext: PitchContext | null = null;
-      if (pitchAnalysisPrompt) {
-        processedContext = await this.analyzePitchContext(
-          pitchDescription,
-          documents,
-          pitchAnalysisPrompt,
-        );
-      }
-
-      // Step 3: Generate meeting setup using existing Langfuse prompt
+      // Step 2: Generate meeting setup using existing Langfuse prompt
       if (!meetingSetupPrompt) {
         throw new Error('Meeting setup prompt not available');
       }
@@ -85,13 +72,16 @@ export class PitchProcessingService {
         }),
       });
 
-      // Step 4: Skip pre-opening messages to improve performance
+      // Step 3: Create context from meeting setup data
+      const processedContext = this.createContextFromMeetingSetup(
+        pitchDescription,
+        meetingSetup.object,
+      );
 
       const processingTime = Date.now() - startTime;
 
       return {
-        processedContext:
-          processedContext || this.createFallbackContext(pitchDescription, meetingSetup.object),
+        processedContext,
         meetingData: meetingSetup.object,
         metadata: {
           processingTime,
@@ -136,9 +126,9 @@ export class PitchProcessingService {
   }
 
   /**
-   * Create fallback context when pitch analysis prompt is not available
+   * Create context from meeting setup data
    */
-  private static createFallbackContext(
+  private static createContextFromMeetingSetup(
     pitchDescription: string,
     meetingSetup: z.infer<typeof MeetingSetupSchema>,
   ): PitchContext {
