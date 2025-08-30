@@ -9,6 +9,7 @@ import HubPage from './pages/hub/HubPage';
 import InboxPage from './pages/inbox/InboxPage';
 import MeetingsPage from './pages/meetings/MeetingsPage';
 import NewPage from './pages/new/NewPage';
+import PricingPage from './pages/pricing/PricingPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import './styles/index.css';
 
@@ -33,6 +34,7 @@ function App() {
                     <Route path="meetings" element={<MeetingsPage />} />
                     <Route path="meeting/:meetingId" element={<MeetingPage />} />
                     <Route path="hub" element={<HubPage />} />
+                    <Route path="pricing" element={<PricingPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                   </Routes>
                 </RequireApproval>

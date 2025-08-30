@@ -11,6 +11,7 @@ import FileDropzone from './FileDropzone';
 import { Logo } from './Logo';
 import { NewMeetingLoading } from './NewMeetingLoading';
 import { ResponsiveContainer } from './ResponsiveContainer';
+import { MeetingProtect } from './billing/MeetingProtect';
 import { MicButton } from './ui/mic-button';
 
 // Types
@@ -238,20 +239,22 @@ export const ScenarioInput: React.FC<ScenarioInputProps> = ({ scenarioType, onBa
 
             {/* Continue Button */}
             <div className="flex justify-end mt-6">
-              <button
-                onClick={handleContinue}
-                disabled={!inputValue.trim() && uploadedFiles.length === 0}
-                className={`
-                    px-6 py-2 rounded-lg font-medium transition-colors
-                    ${
-                      inputValue.trim() || uploadedFiles.length > 0
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }
-                  `}
-              >
-                Continue
-              </button>
+              <MeetingProtect>
+                <button
+                  onClick={handleContinue}
+                  disabled={!inputValue.trim() && uploadedFiles.length === 0}
+                  className={`
+                      px-6 py-2 rounded-lg font-medium transition-colors
+                      ${
+                        inputValue.trim() || uploadedFiles.length > 0
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }
+                    `}
+                >
+                  Continue
+                </button>
+              </MeetingProtect>
             </div>
           </>
         )}
