@@ -12,7 +12,7 @@ export const AI_MODELS = {
     GPT_4O: openai('gpt-4o'),
     GPT_4O_MINI: openai('gpt-4o-mini'),
     GPT_4: openai('gpt-4'),
-    GPT_5_NANO: openai('gpt-5-nano'),
+    GPT_4_1_NANO: openai('gpt-4.1-nano'),
   },
   // Speech models
   SPEECH: {
@@ -23,7 +23,7 @@ export const AI_MODELS = {
 } as const;
 
 // Default model selection - change here to switch models globally
-export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_5_NANO;
+export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4_1_NANO;
 export const DEFAULT_SPEECH_MODEL = AI_MODELS.SPEECH.GPT_4O_MINI_TTS;
 
 // Legacy export for backward compatibility
@@ -47,6 +47,7 @@ export async function streamText(prompt: string) {
   const { textStream } = await aiStreamText({
     model,
     prompt,
+    onError: ({ error }) => console.error('AI stream error:', error),
   });
   return textStream;
 }

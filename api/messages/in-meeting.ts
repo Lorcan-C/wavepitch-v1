@@ -248,6 +248,7 @@ async function handleGenerateResponse(
       model: DEFAULT_TEXT_MODEL,
       prompt: prompt,
       temperature: 0.7, // Slight randomness for natural responses
+      onError: ({ error }) => console.error('In-meeting stream error:', error),
     });
 
     return stream.toDataStreamResponse({

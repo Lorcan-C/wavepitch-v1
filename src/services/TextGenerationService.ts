@@ -29,6 +29,7 @@ export class OpenAITextGenerationService implements TextGenerationService {
         model: DEFAULT_TEXT_MODEL,
         prompt,
         temperature: 0.7,
+        onError: ({ error }) => console.error('Stream error:', error),
       });
 
       return result.textStream;
