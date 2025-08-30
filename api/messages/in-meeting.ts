@@ -3,6 +3,19 @@ import { z } from 'zod';
 
 import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
 import { getLangfusePrompt } from '../../src/lib/langfuse';
+import { MeetingContextService } from '../../src/services/MeetingContextService';
+
+// Interface for MeetingContext (imported from service)
+interface MeetingContext {
+  experts: Array<{
+    id: string;
+    name: string;
+    role: string;
+    expertise: string;
+  }>;
+  meetingContext: string;
+  currentPhase?: string;
+}
 
 // Context schema for type validation (used for documentation)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,20 +38,6 @@ const MessageContextSchema = z.object({
     expertise: z.string(),
   }),
 });
-
-// In-memory context store for MVP (replace with Redis for production)
-interface MeetingContext {
-  experts: Array<{
-    id: string;
-    name: string;
-    role: string;
-    expertise: string;
-  }>;
-  meetingContext: string;
-  currentPhase?: string;
-}
-
-const meetingContexts = new Map<string, MeetingContext>();
 
 // Environment validation function based on SDK best practices
 function validateEnvironment(): { valid: boolean; missing: string[]; warnings: string[] } {
@@ -194,12 +193,16 @@ async function handleGenerateResponse(
 ) {
   const { sessionId, expertId, conversationHistory, currentPhase, userMessage } = body;
 
-  // Get meeting context
-  const meetingContext = meetingContexts.get(sessionId as string);
-  if (!meetingContext) {
+  // Validate context and expert using modular service
+  const validation = MeetingContextService.validateContextAndExpert(
+    sessionId as string,
+    expertId as string,
+  );
+
+  if (!validation.isValid) {
     return new Response(
       JSON.stringify({
-        error: 'Meeting context not found',
+        error: validation.error,
       }),
       {
         status: 404,
@@ -208,18 +211,7 @@ async function handleGenerateResponse(
     );
   }
 
-  const expert = meetingContext.experts.find((e) => e.id === expertId);
-  if (!expert) {
-    return new Response(
-      JSON.stringify({
-        error: 'Expert not found',
-      }),
-      {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
-  }
+  const { context: meetingContext, expert } = validation;
 
   try {
     // Get context prompt from Langfuse
@@ -227,20 +219,25 @@ async function handleGenerateResponse(
 
     // Build conversation context (last 10 messages for performance)
     const recentHistory = (
-      conversationHistory as Array<{ isUser: boolean; sender: string; message: string }>
+      conversationHistory as Array<{
+        isUser: boolean;
+        sender: string;
+        message: string;
+        timestamp: number;
+      }>
     ).slice(-10);
-    const historyText = recentHistory
-      .map((msg: Record<string, unknown>) => `${msg.isUser ? 'User' : msg.sender}: ${msg.message}`)
-      .join('\n');
+
+    // Format context as JSON for OpenAI
+    const contextJson = MeetingContextService.formatContextForAI(
+      meetingContext,
+      expert,
+      recentHistory,
+      (currentPhase as string) || 'discussion',
+      (userMessage as string) || '',
+    );
 
     const prompt = contextPrompt.compile({
-      expertName: expert.name,
-      expertRole: expert.role,
-      expertise: expert.expertise,
-      meetingContext: meetingContext.meetingContext,
-      currentPhase: (currentPhase as string) || 'discussion',
-      conversationHistory: historyText,
-      userMessage: (userMessage as string) || '',
+      contextJson,
     });
 
     // Generate response with streaming for real-time feel
@@ -297,7 +294,7 @@ async function handleAdvanceSpeaker(
   corsHeaders: Record<string, string>,
 ) {
   const { sessionId, currentSpeaker } = body;
-  const meetingContext = meetingContexts.get(sessionId as string);
+  const meetingContext = MeetingContextService.getContext(sessionId as string);
 
   if (!meetingContext) {
     return new Response(
@@ -383,15 +380,7 @@ async function handleUpdateContext(
   const { sessionId, updates } = body;
 
   try {
-    if (meetingContexts.has(sessionId as string)) {
-      const context = meetingContexts.get(sessionId as string)!;
-      meetingContexts.set(sessionId as string, {
-        ...context,
-        ...(updates as Partial<MeetingContext>),
-      });
-    } else {
-      meetingContexts.set(sessionId as string, updates as MeetingContext);
-    }
+    MeetingContextService.updateContext(sessionId as string, updates as Partial<MeetingContext>);
 
     return new Response(
       JSON.stringify({
