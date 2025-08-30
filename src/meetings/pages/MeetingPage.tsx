@@ -64,19 +64,22 @@ export const MeetingPage: React.FC = () => {
           }),
         );
 
-        // Convert pre-generated openings to messages
+        // Convert only the first pre-generated opening to message
         const initialMessages: Message[] =
-          data.preGeneratedOpenings?.map(
-            (opening: { message: string; expertId: string; timestamp: number }, index: number) => ({
-              id: `opening-${index}`,
-              content: opening.message,
-              sender: opening.expertId,
-              isUser: false,
-              timestamp: opening.timestamp,
-              senderName:
-                apiParticipants.find((p) => p.id === opening.expertId)?.name || 'AI Assistant',
-            }),
-          ) || [];
+          data.preGeneratedOpenings && data.preGeneratedOpenings.length > 0
+            ? [
+                {
+                  id: 'opening-0',
+                  content: data.preGeneratedOpenings[0].message,
+                  sender: data.preGeneratedOpenings[0].expertId,
+                  isUser: false,
+                  timestamp: data.preGeneratedOpenings[0].timestamp,
+                  senderName:
+                    apiParticipants.find((p) => p.id === data.preGeneratedOpenings[0].expertId)
+                      ?.name || 'AI Assistant',
+                },
+              ]
+            : [];
 
         // Create user object
         const userData: User = {
@@ -99,6 +102,10 @@ export const MeetingPage: React.FC = () => {
           participants: apiParticipants,
           messages: initialMessages,
         });
+
+        // Start the meeting to enable saving
+        const { useMeetingStore } = await import('../../stores/meeting-store');
+        useMeetingStore.getState().startMeeting();
       } catch (error) {
         console.error('Error loading meeting data:', error);
         navigate('/app');

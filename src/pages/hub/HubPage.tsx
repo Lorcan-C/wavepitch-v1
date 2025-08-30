@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -6,33 +6,33 @@ import { format } from 'date-fns';
 
 import { AppContainer } from '../../components/AppContainer';
 import { Button } from '../../components/ui/button';
-import { ConversationsService, StoredConversation } from '../../services/conversationsService';
+import { StoredConversation, useClerkSupabase } from '../../hooks/useClerkSupabase';
 
 const HubPage: React.FC = () => {
   const [conversations, setConversations] = useState<StoredConversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<StoredConversation | null>(null);
   const navigate = useNavigate();
+  const { loadConversations: loadConversationsFromHook, resumeConversation } = useClerkSupabase();
 
-  useEffect(() => {
-    loadConversations();
-  }, []);
-
-  const loadConversations = async () => {
+  const loadConversationsData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await ConversationsService.getConversations();
+      const data = await loadConversationsFromHook();
       setConversations(data);
     } catch (error) {
       console.error('Error loading conversations:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loadConversationsFromHook]);
+
+  useEffect(() => {
+    loadConversationsData();
+  }, [loadConversationsData]);
 
   const handleResumeConversation = async (conversation: StoredConversation) => {
-    const { useMeetingStore } = await import('../../stores/meeting-store');
-    await useMeetingStore.getState().resumeMeeting(conversation.id);
+    await resumeConversation(conversation.id);
     navigate(`/app/meeting/${conversation.id}`);
   };
 

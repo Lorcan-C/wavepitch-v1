@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-import { supabase } from '../lib/supabase';
+import { MeetingData } from '../hooks/useClerkSupabase';
 import { ExpertApiData, MeetingSummary, Message, Participant } from '../meetings/types';
 import { meetingSummaryService } from '../services/MeetingSummaryService';
 
@@ -44,8 +44,13 @@ interface MeetingActions {
   // New actions for meeting lifecycle
   startMeeting: () => void;
   endMeeting: () => Promise<void>;
-  saveMeetingToSupabase: () => Promise<boolean>;
-  resumeMeeting: (conversationId: string) => Promise<void>;
+  getMeetingData: () => MeetingData;
+  loadFromConversationData: (data: {
+    id: string;
+    title: string;
+    meeting_id: string;
+    transcript_data: { participants?: Participant[]; messages?: Message[] };
+  }) => void;
   // Summary actions
   generateSummary: () => Promise<void>;
   clearSummary: () => void;
@@ -178,133 +183,40 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
             state.isMeetingActive = false;
             state.meetingEndTime = new Date().toISOString();
           });
-
-          // Auto-save to Supabase when meeting ends
-          await get().saveMeetingToSupabase();
         },
 
-        saveMeetingToSupabase: async (): Promise<boolean> => {
+        getMeetingData: (): MeetingData => {
           const state = get();
-
-          // Only save if we have a valid meeting
-          if (!state.meetingId || !state.meetingTitle || state.messages.length === 0) {
-            console.log('No valid meeting data to save');
-            return false;
-          }
-
-          try {
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
-            if (!user) {
-              console.log('No authenticated user, skipping Supabase save');
-              return false;
-            }
-
-            // Calculate meeting duration
-            const startTime = state.meetingStartTime || new Date().toISOString();
-            const endTime = state.meetingEndTime || new Date().toISOString();
-            const durationMinutes = Math.round(
-              (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60),
-            );
-
-            // Prepare transcript data
-            const transcriptData = {
-              id: state.meetingId,
-              title: state.meetingTitle,
-              platform: 'wavepitch',
-              meetingId: state.meetingId,
-              startTime: startTime,
-              endTime: endTime,
-              durationMinutes: durationMinutes,
-              participantCount: state.participants.length,
-              participants: state.participants,
-              messages: state.messages,
-              segments: state.messages.map((msg, index) => ({
-                id: msg.id,
-                speaker: msg.senderName || msg.sender,
-                text: msg.content,
-                startTime: index * 30, // Approximate timing
-                endTime: (index + 1) * 30,
-                confidence: 1.0,
-              })),
-              fullText: state.messages.map((msg) => msg.content).join(' '),
-              sessionId: state.sessionId,
-            };
-
-            // Save to Supabase
-            const { error } = await supabase.from('conversations').upsert(
-              {
-                id: state.meetingId,
-                title: state.meetingTitle,
-                platform: 'wavepitch',
-                meeting_id: state.meetingId,
-                start_time: startTime,
-                end_time: endTime,
-                duration_minutes: durationMinutes,
-                participant_count: state.participants.length,
-                transcript_data: transcriptData,
-                user_id: user.id,
-              },
-              {
-                onConflict: 'id',
-              },
-            );
-
-            if (error) {
-              console.error('Failed to save meeting to Supabase:', error);
-              set((state) => {
-                state.error = 'Failed to save meeting to cloud storage';
-              });
-              return false;
-            }
-
-            console.log('Meeting saved to Supabase successfully');
-            return true;
-          } catch (error) {
-            console.error('Error saving meeting to Supabase:', error);
-            set((state) => {
-              state.error = 'Failed to save meeting to cloud storage';
-            });
-            return false;
-          }
+          return {
+            meetingId: state.meetingId,
+            meetingTitle: state.meetingTitle,
+            participants: state.participants,
+            messages: state.messages,
+            meetingStartTime: state.meetingStartTime,
+            meetingEndTime: state.meetingEndTime,
+            sessionId: state.sessionId,
+          };
         },
 
-        resumeMeeting: async (conversationId: string) => {
-          try {
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
-            if (!user) throw new Error('User not authenticated');
-
-            const { data, error } = await supabase
-              .from('conversations')
-              .select('*')
-              .eq('id', conversationId)
-              .eq('user_id', user.id)
-              .single();
-
-            if (error) throw error;
-
-            const transcriptData = data.transcript_data;
-            set((state) => {
-              state.meetingId = data.id;
-              state.sessionId = data.meeting_id;
-              state.meetingTitle = data.title;
-              state.participants = transcriptData.participants || [];
-              state.messages = transcriptData.messages || [];
-              state.currentSpeakerIndex = 0;
-              state.isMeetingActive = true;
-              state.meetingStartTime = new Date().toISOString();
-              state.meetingEndTime = null;
-              state.error = null;
-            });
-          } catch (error) {
-            console.error('Failed to resume meeting:', error);
-            set((state) => {
-              state.error = 'Failed to resume meeting';
-            });
-          }
+        loadFromConversationData: (data: {
+          id: string;
+          title: string;
+          meeting_id: string;
+          transcript_data: { participants?: Participant[]; messages?: Message[] };
+        }) => {
+          const transcriptData = data.transcript_data;
+          set((state) => {
+            state.meetingId = data.id;
+            state.sessionId = data.meeting_id;
+            state.meetingTitle = data.title;
+            state.participants = transcriptData.participants || [];
+            state.messages = transcriptData.messages || [];
+            state.currentSpeakerIndex = 0;
+            state.isMeetingActive = true;
+            state.meetingStartTime = new Date().toISOString();
+            state.meetingEndTime = null;
+            state.error = null;
+          });
         },
 
         // Summary actions

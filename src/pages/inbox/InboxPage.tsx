@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
 import { ConversationCard } from '../../components/inbox/ConversationCard';
 import { Button } from '../../components/ui/button';
+import { Message, Participant } from '../../meetings/types';
 import { ConversationsService, StoredConversation } from '../../services/conversationsService';
 
 const InboxPage: React.FC = () => {
@@ -30,7 +31,15 @@ const InboxPage: React.FC = () => {
 
   const handleResumeConversation = async (conversation: StoredConversation) => {
     const { useMeetingStore } = await import('../../stores/meeting-store');
-    await useMeetingStore.getState().resumeMeeting(conversation.id);
+    useMeetingStore.getState().loadFromConversationData({
+      id: conversation.id,
+      title: conversation.title,
+      meeting_id: conversation.meeting_id,
+      transcript_data: {
+        participants: conversation.transcript_data.participants as Participant[],
+        messages: conversation.transcript_data.messages as Message[],
+      },
+    });
     navigate(`/app/meeting/${conversation.id}`);
   };
 
@@ -49,7 +58,7 @@ const InboxPage: React.FC = () => {
       {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-4xl bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-6 mt-20">
-          <h1 className="text-3xl font-bold mb-6">Your Inbox</h1>
+          <h1 className="text-2xl font-bold mb-6">Inbox</h1>
 
           {isLoading ? (
             <div>Loading conversations...</div>
