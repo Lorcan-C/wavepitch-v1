@@ -12,13 +12,7 @@ import {
 
 export interface PitchProcessingResult {
   processedContext: PitchContext;
-  meetingData: MeetingSetup & {
-    preGeneratedOpenings?: Array<{
-      expertId: string;
-      message: string;
-      timestamp: number;
-    }>;
-  };
+  meetingData: MeetingSetup;
   metadata: {
     processingTime: number;
     aiProvider: string;
@@ -27,6 +21,26 @@ export interface PitchProcessingResult {
 }
 
 export class PitchProcessingService {
+  // Cache for Langfuse prompts to avoid repeated fetches
+  private static promptCache = new Map<
+    string,
+    { compile: (data: Record<string, string>) => string } | null
+  >();
+
+  /**
+   * Get cached Langfuse prompt
+   */
+  private static async getLangfusePromptCached(name: string) {
+    if (!this.promptCache.has(name)) {
+      try {
+        const prompt = await getLangfusePrompt(name);
+        this.promptCache.set(name, prompt);
+      } catch {
+        this.promptCache.set(name, null);
+      }
+    }
+    return this.promptCache.get(name);
+  }
   /**
    * Main processing method using Langfuse prompts
    */
@@ -38,11 +52,10 @@ export class PitchProcessingService {
     const startTime = Date.now();
 
     try {
-      // Step 1: Get Langfuse prompts
-      const [pitchAnalysisPrompt, meetingSetupPrompt, expertOpeningPrompt] = await Promise.all([
-        getLangfusePrompt('pitch-context-analysis').catch(() => null),
-        getLangfusePrompt('enhanced-meeting-setup'),
-        getLangfusePrompt('expert-opening-message'),
+      // Step 1: Get Langfuse prompts (cached)
+      const [pitchAnalysisPrompt, meetingSetupPrompt] = await Promise.all([
+        this.getLangfusePromptCached('pitch-context-analysis'),
+        this.getLangfusePromptCached('enhanced-meeting-setup'),
       ]);
 
       // Step 2: Process pitch context (if we have the prompt)
@@ -56,6 +69,10 @@ export class PitchProcessingService {
       }
 
       // Step 3: Generate meeting setup using existing Langfuse prompt
+      if (!meetingSetupPrompt) {
+        throw new Error('Meeting setup prompt not available');
+      }
+
       const meetingSetup = await generateObject({
         model: DEFAULT_TEXT_MODEL,
         schema: MeetingSetupSchema,
@@ -68,23 +85,14 @@ export class PitchProcessingService {
         }),
       });
 
-      // Step 4: Generate pre-opening messages
-      const preGeneratedOpenings = await this.generateOpeningMessages(
-        meetingSetup.object.experts,
-        expertOpeningPrompt,
-        meetingType,
-        pitchDescription,
-      );
+      // Step 4: Skip pre-opening messages to improve performance
 
       const processingTime = Date.now() - startTime;
 
       return {
         processedContext:
           processedContext || this.createFallbackContext(pitchDescription, meetingSetup.object),
-        meetingData: {
-          ...meetingSetup.object,
-          preGeneratedOpenings,
-        },
+        meetingData: meetingSetup.object,
         metadata: {
           processingTime,
           aiProvider: 'openai-gpt-4o',
@@ -125,44 +133,6 @@ export class PitchProcessingService {
     });
 
     return result.object;
-  }
-
-  /**
-   * Generate opening messages using Langfuse prompt
-   */
-  private static async generateOpeningMessages(
-    experts: Array<{ id: string; name: string; role: string; bio: string }>,
-    expertOpeningPrompt: { compile: (data: Record<string, string>) => string },
-    meetingType: string,
-    pitchDescription: string,
-  ): Promise<Array<{ expertId: string; message: string; timestamp: number }>> {
-    try {
-      const openingMessages = await Promise.all(
-        experts.map(async (expert) => {
-          const message = await generateText({
-            model: DEFAULT_TEXT_MODEL,
-            prompt: expertOpeningPrompt.compile({
-              expertName: expert.name,
-              expertRole: expert.role,
-              expertise: expert.bio,
-              meetingType,
-              pitchDescription,
-            }),
-          });
-
-          return {
-            expertId: expert.id,
-            message: message.text,
-            timestamp: Date.now(),
-          };
-        }),
-      );
-
-      return openingMessages;
-    } catch (error) {
-      console.warn('Failed to generate opening messages:', error);
-      return [];
-    }
   }
 
   /**
