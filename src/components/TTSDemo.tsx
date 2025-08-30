@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { useSimpleTTS } from '../hooks/useSimpleTTS';
 import type { OpenAIVoice } from '../services/voice/types';
