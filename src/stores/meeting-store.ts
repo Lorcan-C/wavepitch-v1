@@ -138,8 +138,8 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
                   (expert: ExpertApiData, index: number) => ({
                     id: expert.id || `expert-${index}`,
                     name: expert.name || `Expert ${index + 1}`,
-                    role: expert.role || expert.expertise || 'Expert',
-                    description: expert.bio || expert.expertise || expert.description || '',
+                    role: expert.role || 'Expert',
+                    description: expert.bio || expert.description || '',
                     avatar: expert.avatar,
                     color: expert.color,
                   }),

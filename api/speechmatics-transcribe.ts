@@ -231,7 +231,7 @@ async function transcribeStream(
 
     if (client) {
       try {
-        client.removeAllEventListeners?.();
+        client.removeEventListener('receiveMessage', () => {});
         client.stopRecognition();
       } catch (error) {
         console.error('Client cleanup error:', error);
@@ -300,7 +300,9 @@ async function transcribeStream(
           controller.close();
         } else if (data.message === 'Error') {
           const errorMessage =
-            data.error?.message || data.message || 'Transcription error occurred';
+            (data as { error?: { message?: string }; message?: string }).error?.message ||
+            (data as { message?: string }).message ||
+            'Transcription error occurred';
           controller.enqueue(
             `data: ${JSON.stringify({
               type: 'error',
@@ -326,7 +328,7 @@ async function transcribeStream(
     await client.start(jwt, {
       transcription_config: {
         language,
-        operating_point: operatingPoint,
+        operating_point: operatingPoint as 'standard' | 'enhanced',
         enable_partials: true,
         max_delay: CONFIG.MAX_DELAY,
         transcript_filtering_config: {

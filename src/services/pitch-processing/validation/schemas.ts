@@ -30,7 +30,6 @@ export const MeetingSetupSchema = z.object({
       id: z.string(),
       name: z.string(),
       role: z.string(),
-      expertise: z.string(),
       bio: z.string(),
     }),
   ),

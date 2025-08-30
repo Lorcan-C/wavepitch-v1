@@ -131,7 +131,7 @@ export class PitchProcessingService {
    * Generate opening messages using Langfuse prompt
    */
   private static async generateOpeningMessages(
-    experts: Array<{ id: string; name: string; role: string; expertise: string }>,
+    experts: Array<{ id: string; name: string; role: string; bio: string }>,
     expertOpeningPrompt: { compile: (data: Record<string, string>) => string },
     meetingType: string,
     pitchDescription: string,
@@ -144,7 +144,7 @@ export class PitchProcessingService {
             prompt: expertOpeningPrompt.compile({
               expertName: expert.name,
               expertRole: expert.role,
-              expertise: expert.expertise,
+              expertise: expert.bio,
               meetingType,
               pitchDescription,
             }),

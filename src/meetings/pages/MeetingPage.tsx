@@ -58,7 +58,7 @@ export const MeetingPage: React.FC = () => {
             id: expert.id,
             name: expert.name,
             role: expert.role,
-            description: expert.bio || expert.expertise || '',
+            description: expert.bio || '',
             avatar: getInitials(expert.name),
             color: ['purple', 'blue', 'pink', 'green', 'yellow'][index % 5] as Participant['color'],
           }),

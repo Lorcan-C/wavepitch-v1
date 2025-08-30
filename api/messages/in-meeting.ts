@@ -195,7 +195,7 @@ async function handleGenerateResponse(
   const { sessionId, expertId, conversationHistory, currentPhase, userMessage } = body;
 
   // Get meeting context
-  const meetingContext = meetingContexts.get(sessionId);
+  const meetingContext = meetingContexts.get(sessionId as string);
   if (!meetingContext) {
     return new Response(
       JSON.stringify({
@@ -226,7 +226,9 @@ async function handleGenerateResponse(
     const contextPrompt = await getLangfusePrompt('in-meeting-response');
 
     // Build conversation context (last 10 messages for performance)
-    const recentHistory = conversationHistory.slice(-10);
+    const recentHistory = (
+      conversationHistory as Array<{ isUser: boolean; sender: string; message: string }>
+    ).slice(-10);
     const historyText = recentHistory
       .map((msg: Record<string, unknown>) => `${msg.isUser ? 'User' : msg.sender}: ${msg.message}`)
       .join('\n');
@@ -234,11 +236,11 @@ async function handleGenerateResponse(
     const prompt = contextPrompt.compile({
       expertName: expert.name,
       expertRole: expert.role,
-      expertise: expert.expertise,
+      expertise: expert.bio,
       meetingContext: meetingContext.meetingContext,
-      currentPhase: currentPhase || 'discussion',
+      currentPhase: (currentPhase as string) || 'discussion',
       conversationHistory: historyText,
-      userMessage: userMessage || '',
+      userMessage: (userMessage as string) || '',
     });
 
     // Generate response with streaming for real-time feel
@@ -248,7 +250,7 @@ async function handleGenerateResponse(
       temperature: 0.7, // Slight randomness for natural responses
     });
 
-    return new Response(stream.toAIStream(), {
+    return stream.toDataStreamResponse({
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/plain; charset=utf-8',
@@ -294,7 +296,7 @@ async function handleAdvanceSpeaker(
   corsHeaders: Record<string, string>,
 ) {
   const { sessionId, currentSpeaker } = body;
-  const meetingContext = meetingContexts.get(sessionId);
+  const meetingContext = meetingContexts.get(sessionId as string);
 
   if (!meetingContext) {
     return new Response(
@@ -310,7 +312,9 @@ async function handleAdvanceSpeaker(
 
   try {
     // Simple round-robin for MVP (enhance with conversation flow logic later)
-    const currentIndex = meetingContext.experts.findIndex((e) => e.id === currentSpeaker);
+    const currentIndex = meetingContext.experts.findIndex(
+      (e) => e.id === (currentSpeaker as string),
+    );
     const nextIndex = (currentIndex + 1) % meetingContext.experts.length;
     const nextSpeaker = meetingContext.experts[nextIndex];
 
@@ -323,7 +327,7 @@ async function handleAdvanceSpeaker(
       prompt: transitionPrompt.compile({
         expertName: nextSpeaker.name,
         expertRole: nextSpeaker.role,
-        expertise: nextSpeaker.expertise,
+        expertise: nextSpeaker.bio,
         meetingContext: meetingContext.meetingContext,
       }),
     });
@@ -378,11 +382,14 @@ async function handleUpdateContext(
   const { sessionId, updates } = body;
 
   try {
-    if (meetingContexts.has(sessionId)) {
-      const context = meetingContexts.get(sessionId);
-      meetingContexts.set(sessionId, { ...context, ...updates });
+    if (meetingContexts.has(sessionId as string)) {
+      const context = meetingContexts.get(sessionId as string)!;
+      meetingContexts.set(sessionId as string, {
+        ...context,
+        ...(updates as Partial<MeetingContext>),
+      });
     } else {
-      meetingContexts.set(sessionId, updates);
+      meetingContexts.set(sessionId as string, updates as MeetingContext);
     }
 
     return new Response(
