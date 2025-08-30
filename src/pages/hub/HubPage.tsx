@@ -49,27 +49,43 @@ const HubPage: React.FC = () => {
 
   if (selectedConversation) {
     return (
-      <div className="container mx-auto p-6">
-        <Button onClick={() => setSelectedConversation(null)} className="mb-4">
-          ← Back to Hub
-        </Button>
+      <div className="min-h-screen flex flex-col bg-background overflow-auto relative">
+        {/* Preload background image */}
+        <link rel="preload" as="image" href="/images/forest_v3.webp" />
+        {/* Background image layer with opacity */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/images/forest_v3.webp)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.5,
+          }}
+        />
 
-        <div className="bg-white border rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-2">{selectedConversation.title}</h2>
-          <p className="text-gray-600 mb-4">
-            {format(new Date(selectedConversation.start_time), 'MMM d, yyyy h:mm a')}
-          </p>
+        {/* Content layer with full opacity */}
+        <div className="relative z-10 container mx-auto p-6">
+          <Button onClick={() => setSelectedConversation(null)} className="mb-4">
+            ← Back to Hub
+          </Button>
 
-          <div className="flex gap-4 mb-6">
-            <span>{selectedConversation.duration_minutes || 0} minutes</span>
-            <span>{selectedConversation.participant_count} participants</span>
-          </div>
+          <div className="bg-white border rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-2">{selectedConversation.title}</h2>
+            <p className="text-gray-600 mb-4">
+              {format(new Date(selectedConversation.start_time), 'MMM d, yyyy h:mm a')}
+            </p>
 
-          <div className="flex gap-2">
-            <Button onClick={() => showSummary(selectedConversation)}>View Summary</Button>
-            <Button onClick={() => handleResumeConversation(selectedConversation)}>
-              Resume Meeting
-            </Button>
+            <div className="flex gap-4 mb-6">
+              <span>{selectedConversation.duration_minutes || 0} minutes</span>
+              <span>{selectedConversation.participant_count} participants</span>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={() => showSummary(selectedConversation)}>View Summary</Button>
+              <Button onClick={() => handleResumeConversation(selectedConversation)}>
+                Resume Meeting
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -77,35 +93,51 @@ const HubPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Your Conversations</h1>
+    <div className="min-h-screen flex flex-col bg-background overflow-auto relative">
+      {/* Preload background image */}
+      <link rel="preload" as="image" href="/images/forest_v3.webp" />
+      {/* Background image layer with opacity */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url(/images/forest_v3.webp)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.5,
+        }}
+      />
 
-      {isLoading ? (
-        <div>Loading conversations...</div>
-      ) : conversations.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
-          <p className="text-gray-600 mb-4">Start your first meeting to see it here</p>
-          <Button onClick={() => navigate('/app/new')}>Start New Meeting</Button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedConversation(conversation)}
-            >
-              <h3 className="font-medium">{conversation.title}</h3>
-              <p className="text-sm text-gray-600">
-                {format(new Date(conversation.start_time), 'MMM d, yyyy h:mm a')} •
-                {conversation.duration_minutes || 0} min •{conversation.participant_count}{' '}
-                participants
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Content layer with full opacity */}
+      <div className="relative z-10 container mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Your Conversations</h1>
+
+        {isLoading ? (
+          <div>Loading conversations...</div>
+        ) : conversations.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
+            <p className="text-gray-600 mb-4">Start your first meeting to see it here</p>
+            <Button onClick={() => navigate('/app/new')}>Start New Meeting</Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedConversation(conversation)}
+              >
+                <h3 className="font-medium">{conversation.title}</h3>
+                <p className="text-sm text-gray-600">
+                  {format(new Date(conversation.start_time), 'MMM d, yyyy h:mm a')} •
+                  {conversation.duration_minutes || 0} min •{conversation.participant_count}{' '}
+                  participants
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
