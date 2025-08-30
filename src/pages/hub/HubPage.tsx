@@ -32,8 +32,18 @@ const HubPage: React.FC = () => {
   }, [loadConversationsData]);
 
   const handleResumeConversation = async (conversation: StoredConversation) => {
-    await resumeConversation(conversation.id);
-    navigate(`/app/meeting/${conversation.id}`);
+    try {
+      const conversationData = await resumeConversation(conversation.id);
+      if (conversationData) {
+        const { useMeetingStore } = await import('../../stores/meeting-store');
+        useMeetingStore.getState().loadFromConversationData(conversationData);
+        navigate(`/app/meeting/${conversation.id}`);
+      } else {
+        console.error('Failed to load conversation data');
+      }
+    } catch (error) {
+      console.error('Error resuming conversation:', error);
+    }
   };
 
   const showSummary = (conversation: StoredConversation) => {
