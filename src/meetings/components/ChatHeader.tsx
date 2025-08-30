@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { useAuth } from '@clerk/clerk-react';
 import { Eye, EyeOff, FileText, Mic, MicOff, Users, X } from 'lucide-react';
 
+import { MeetingTimer } from '@/components/MeetingTimer';
 import { Button } from '@/components/ui/button';
+import { generateMeetingTopic } from '@/lib/meeting-topic-generator';
 
 import type { Participant, User } from '../types';
 
@@ -13,6 +16,7 @@ interface ChatHeaderProps {
   user: User;
   isMuted: boolean;
   showSpeakerQueue: boolean;
+  meetingStartTime: string | null;
   onToggleMute: () => void;
   onToggleSpeakerQueue: () => void;
   onShowSummary: () => void;
@@ -27,18 +31,50 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   user: _user, // eslint-disable-line @typescript-eslint/no-unused-vars
   isMuted,
   showSpeakerQueue,
+  meetingStartTime,
   onToggleMute,
   onToggleSpeakerQueue,
   onShowSummary,
   onEndMeeting,
   onShowExpertPreview,
 }) => {
+  const { getToken } = useAuth();
+  const [generatedTopic, setGeneratedTopic] = useState<string>('');
+
+  // Generate AI topic on mount
+  useEffect(() => {
+    const loadTopic = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        // Get stored session data to extract pitch description
+        const storedSession = sessionStorage.getItem('meetingSession');
+        if (!storedSession) return;
+
+        const sessionData = JSON.parse(storedSession);
+        const pitchDescription = sessionData.meetingData?.pitchDescription || meetingTitle;
+
+        const topic = await generateMeetingTopic(pitchDescription, 'discussion', token);
+        setGeneratedTopic(topic);
+      } catch (error) {
+        console.error('Failed to generate meeting topic:', error);
+        setGeneratedTopic('Business Discussion');
+      }
+    };
+
+    loadTopic();
+  }, [meetingTitle, getToken]);
+
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Left: Title */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-semibold text-gray-900 truncate">{meetingTitle}</h1>
+        {/* Left: Title and Timer */}
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <h1 className="text-base font-semibold text-gray-900 truncate">
+            {generatedTopic || meetingTitle}
+          </h1>
+          <MeetingTimer startTime={meetingStartTime} className="text-gray-500" />
         </div>
 
         {/* Right: Control Buttons */}

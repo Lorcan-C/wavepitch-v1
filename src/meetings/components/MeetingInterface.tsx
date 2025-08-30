@@ -6,8 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
+import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { voiceAssigner } from '@/services/voice';
+import { useMeetingStore } from '@/stores/meeting-store';
 
 import { MeetingSummaryDialog } from '../../components/meetings/MeetingSummaryDialog';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -42,6 +44,10 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
 
+  // Clerk-Supabase integration
+  const { isAuthenticated, saveMeeting } = useClerkSupabase();
+  const { endMeeting, getMeetingData } = useMeetingStore();
+
   // UI State
   const [isMuted, setIsMuted] = useState(false);
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
@@ -49,6 +55,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isChatOpen, setIsChatOpen] = useState(false); // Mobile chat state
+  const [meetingStartTime] = useState<string>(new Date().toISOString());
 
   // Sync messages with prop changes
   useEffect(() => {
@@ -398,13 +405,38 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     }
   };
 
-  const handleEndMeeting = () => {
+  const handleEndMeeting = async () => {
     console.log('End meeting requested');
     if (window.confirm('Are you sure you want to end this meeting?')) {
-      // Cleanup voice assignments
-      voiceAssigner.clearSession(sessionId || meetingId);
-      console.log('Voice assignments cleared for session');
-      navigate('/app');
+      try {
+        if (!isAuthenticated) {
+          toast.error('Authentication required to save meeting');
+          navigate('/app');
+          return;
+        }
+
+        // End the meeting in store
+        await endMeeting();
+
+        // Get meeting data and save
+        const meetingData = getMeetingData();
+        const saved = await saveMeeting(meetingData);
+
+        if (saved) {
+          toast.success('Meeting saved successfully');
+        } else {
+          toast.error('Failed to save meeting');
+        }
+
+        // Cleanup voice assignments
+        voiceAssigner.clearSession(sessionId || meetingId);
+        console.log('Voice assignments cleared for session');
+        navigate('/app');
+      } catch (error) {
+        console.error('Failed to end meeting:', error);
+        toast.error('Error ending meeting');
+        navigate('/app');
+      }
     }
   };
 
@@ -438,6 +470,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           user={user}
           isMuted={isMuted}
           showSpeakerQueue={showSpeakerQueue}
+          meetingStartTime={meetingStartTime}
           onToggleMute={handleToggleMute}
           onToggleSpeakerQueue={handleToggleSpeakerQueue}
           onShowSummary={handleShowSummary}
