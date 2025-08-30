@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { format } from 'date-fns';
-
 import { Logo } from '../../components/Logo';
+import { ConversationCard } from '../../components/inbox/ConversationCard';
 import { Button } from '../../components/ui/button';
 import { ConversationsService, StoredConversation } from '../../services/conversationsService';
 
@@ -55,60 +54,22 @@ const InboxPage: React.FC = () => {
           {isLoading ? (
             <div>Loading conversations...</div>
           ) : conversations.length === 0 ? (
-            <div>
-              <div className="text-center py-6 mb-6">
-                <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
-                <p className="text-gray-600 mb-4">Start your first meeting to see it here</p>
-                <Button onClick={() => navigate('/app/new')}>Start New Meeting</Button>
-              </div>
-              
-              <div className="space-y-4 opacity-50">
-                <h4 className="text-sm text-gray-500 mb-2">Example of what your meetings will look like:</h4>
-                {[
-                  { title: 'Product Strategy Discussion', duration: 45, participants: 3, time: 'Today at 2:00 PM' },
-                  { title: 'Team Standup', duration: 15, participants: 5, time: 'Yesterday at 10:00 AM' },
-                  { title: 'Client Presentation', duration: 60, participants: 4, time: 'Monday at 3:30 PM' }
-                ].map((placeholder, index) => (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-4 bg-gray-50 pointer-events-none"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-lg mb-1">{placeholder.title}</h3>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {placeholder.time} • {placeholder.duration} min • {placeholder.participants} participants
-                        </p>
-                      </div>
-                      <Button disabled className="ml-4 opacity-50">
-                        Resume
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium mb-2">No conversations yet</h3>
+              <p className="text-gray-600 mb-4">Start your first meeting to see it here</p>
+              <Button onClick={() => navigate('/app/new')}>Start New Meeting</Button>
             </div>
           ) : (
             <div className="space-y-4">
               {conversations.map((conversation) => (
-                <div
+                <ConversationCard
                   key={conversation.id}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-lg mb-1">{conversation.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {format(new Date(conversation.start_time), 'MMM d, yyyy h:mm a')} •
-                        {conversation.duration_minutes || 0} min •{conversation.participant_count}{' '}
-                        participants
-                      </p>
-                    </div>
-                    <Button onClick={() => handleResumeConversation(conversation)} className="ml-4">
-                      Resume
-                    </Button>
-                  </div>
-                </div>
+                  title={conversation.title}
+                  startTime={conversation.start_time}
+                  durationMinutes={conversation.duration_minutes || 0}
+                  participantCount={conversation.participant_count}
+                  onResume={() => handleResumeConversation(conversation)}
+                />
               ))}
             </div>
           )}
