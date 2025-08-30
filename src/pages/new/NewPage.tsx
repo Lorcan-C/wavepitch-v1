@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Logo } from '../../components/Logo';
 import { ResponsiveContainer } from '../../components/ResponsiveContainer';
 import { ScenarioInput } from '../../components/ScenarioInput';
 import { ScenarioSelectionCards } from '../../components/ScenarioSelectionCards';
+import { PromptCacheService } from '../../services/PromptCacheService';
 
 type ScenarioType = 'pitch' | 'planning' | 'focus';
 
 const NewPage: React.FC = () => {
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType | null>(null);
+
+  useEffect(() => {
+    PromptCacheService.preFetchPrompts();
+  }, []);
 
   const handleScenarioSelect = (scenario: ScenarioType) => {
     console.log('Selected scenario:', scenario);

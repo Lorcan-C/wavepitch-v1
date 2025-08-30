@@ -27,7 +27,10 @@ export const MeetingSetupSchema = z.object({
   duration: z.number(),
   experts: z.array(
     z.object({
-      id: z.string(),
+      id: z
+        .string()
+        .optional()
+        .default(() => crypto.randomUUID()),
       name: z.string(),
       role: z.string(),
       bio: z.string(),

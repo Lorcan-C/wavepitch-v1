@@ -7,7 +7,6 @@ import {
   type MeetingSetup,
   MeetingSetupSchema,
   type PitchContext,
-  PitchContextSchema,
 } from './pitch-processing/validation';
 
 export interface PitchProcessingResult {
@@ -93,36 +92,6 @@ export class PitchProcessingService {
       console.error('PitchProcessingService: Processing failed:', error);
       throw error;
     }
-  }
-
-  /**
-   * Analyze pitch context using Langfuse prompt
-   */
-  private static async analyzePitchContext(
-    pitchDescription: string,
-    documents: Array<{ filename: string; content?: string }>,
-    pitchAnalysisPrompt: { compile: (data: Record<string, string>) => string },
-  ): Promise<PitchContext> {
-    const documentContext =
-      documents.length > 0
-        ? documents
-            .map(
-              (doc) =>
-                `**${doc.filename}**: ${doc.content?.slice(0, 1000) || 'No content available'}`,
-            )
-            .join('\n\n')
-        : 'No documents provided';
-
-    const result = await generateObject({
-      model: DEFAULT_TEXT_MODEL,
-      schema: PitchContextSchema,
-      prompt: pitchAnalysisPrompt.compile({
-        pitchDescription,
-        documents: documentContext,
-      }),
-    });
-
-    return result.object;
   }
 
   /**
