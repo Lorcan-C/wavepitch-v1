@@ -23,7 +23,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({
   isPlaceholder = false,
 }) => {
   const formattedTime = isPlaceholder
-    ? startTime
+    ? (startTime as string)
     : format(new Date(startTime), 'MMM d, yyyy h:mm a');
 
   return (
