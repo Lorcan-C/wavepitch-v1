@@ -20,7 +20,7 @@ export const getParticipantColor = (participantId: string, fallbackColor?: strin
   return COLORS[Math.abs(hash) % COLORS.length];
 };
 
-export const getMessageBubbleColors = (senderName: string, isUser: boolean) => {
+export const getMessageBubbleColors = (senderId: string, isUser: boolean) => {
   if (isUser) {
     return {
       backgroundColor: '#3B82F6',
@@ -29,7 +29,7 @@ export const getMessageBubbleColors = (senderName: string, isUser: boolean) => {
     };
   }
 
-  const participantColor = getParticipantColor(senderName);
+  const participantColor = getParticipantColor(senderId);
   return {
     backgroundColor: `${participantColor}20`, // 20% opacity
     textColor: '#374151',

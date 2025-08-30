@@ -17,7 +17,7 @@ const formatTimestamp = (timestamp: number) => {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.isUser;
-  const bubbleColors = getMessageBubbleColors(message.senderName || message.sender, isUser);
+  const bubbleColors = getMessageBubbleColors(message.sender, isUser);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
