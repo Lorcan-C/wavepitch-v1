@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useNavigate } from 'react-router-dom';
 
 import { toast } from 'sonner';
@@ -14,13 +13,9 @@ import { useMeetingStore } from '@/stores/meeting-store';
 import { MeetingSummaryDialog } from '../../components/meetings/MeetingSummaryDialog';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { meetingSummaryService } from '../../services/MeetingSummaryService';
-import { useIsDesktop } from '../hooks/useIsDesktop';
-import { MeetingSummary, Message, Participant, SpeakerQueueItem, User } from '../types';
-import { ChatFAB } from './ChatFAB';
+import { MeetingSummary, Message, Participant, User } from '../types';
 import { ChatHeader } from './ChatHeader';
-import { ChatOverlay } from './ChatOverlay';
-import { MeetingChatPanel } from './MeetingChatPanel';
-import { VideoGridWithQueue } from './VideoGridWithQueue';
+import { MeetingLayoutProvider } from './MeetingLayoutProvider';
 
 interface MeetingInterfaceProps {
   meetingId: string;
@@ -42,7 +37,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   nextSpeakerId,
 }) => {
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
 
   // Clerk-Supabase integration
   const { isAuthenticated, saveMeeting } = useClerkSupabase();
@@ -54,7 +48,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [isMicActive, setIsMicActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [isChatOpen, setIsChatOpen] = useState(false); // Mobile chat state
   const [meetingStartTime] = useState<string>(new Date().toISOString());
 
   // Sync messages with prop changes
@@ -67,7 +60,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setMessages(initialMessages);
   }, [initialMessages]);
   const [currentSpeakerIndex, setCurrentSpeakerIndex] = useState(0);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>(meetingId);
 
   // Expert preview dialog state
   const [showExpertPreview, setShowExpertPreview] = useState(true);
@@ -76,12 +69,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-
-  // Chat panel size state with localStorage persistence
-  const [chatPanelSize, setChatPanelSize] = useState(() => {
-    const saved = localStorage.getItem('meetingChatPanelSize');
-    return saved ? parseInt(saved) : 40; // Default to 40% width
-  });
 
   // Streaming state for real-time AI responses
   const [streamingMessage, setStreamingMessage] = useState<string>('');
@@ -100,17 +87,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     autoPlay: !isMuted,
   });
 
-  // Speaker queue with real participant data
-  const speakerQueue: SpeakerQueueItem[] = [
-    { id: user.id, name: user.name, avatar: user.avatar, position: 0 },
-    ...participants.map((p, index) => ({
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar,
-      position: index + 1,
-    })),
-  ];
-
   // Initialize meeting context on mount
   useEffect(() => {
     const initializeMeeting = async () => {
@@ -120,7 +96,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sessionId: meetingId,
+            sessionId: sessionId || meetingId,
             type: 'update-context',
             updates: {
               experts: participants.map((p) => ({
@@ -148,7 +124,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     if (meetingId && participants.length > 0) {
       initializeMeeting();
     }
-  }, [meetingId, participants, meetingTitle, conversationContext.currentPhase]);
+  }, [meetingId, participants, meetingTitle, conversationContext.currentPhase, sessionId]);
 
   // Streaming text handler based on research recommendations
   const handleStreamingResponse = useCallback(
@@ -450,15 +426,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setShowExpertPreview(true);
   };
 
-  // Panel resize handler
-  const handleChatPanelResize = useCallback((sizes: number[]) => {
-    const chatSize = sizes[1]; // Second panel is chat
-    setChatPanelSize(chatSize);
-    localStorage.setItem('meetingChatPanelSize', chatSize.toString());
-  }, []);
-
-  const totalParticipants = participants.length + 1; // +1 for user
-
   return (
     <div className="flex justify-center h-screen overflow-hidden">
       <div className="w-full max-w-[90rem] flex flex-col h-screen overflow-hidden">
@@ -480,92 +447,24 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          {isDesktop ? (
-            /* Desktop Layout with Resizable Panels */
-            <PanelGroup direction="horizontal" onLayout={handleChatPanelResize} className="h-full">
-              {/* Left Panel: Video Layout with Optional Speaker Queue */}
-              <Panel
-                defaultSize={100 - chatPanelSize}
-                minSize={25}
-                maxSize={75}
-                className="overflow-hidden"
-              >
-                <VideoGridWithQueue
-                  participants={participants}
-                  user={user}
-                  currentSpeakerId={currentSpeakerId}
-                  nextSpeakerId={nextSpeakerId}
-                  showSpeakerQueue={showSpeakerQueue}
-                  speakerQueue={speakerQueue}
-                  currentSpeakerIndex={currentSpeakerIndex}
-                  onReshuffle={handleReshuffle}
-                />
-              </Panel>
-
-              {/* Resizable Handle */}
-              <PanelResizeHandle className="w-2 bg-border hover:bg-primary/20 transition-colors duration-200" />
-
-              {/* Right Panel: Chat */}
-              <Panel
-                defaultSize={chatPanelSize}
-                minSize={25}
-                maxSize={75}
-                className="overflow-hidden"
-              >
-                <MeetingChatPanel
-                  messages={messagesWithAudio}
-                  totalParticipants={totalParticipants}
-                  isLoading={isLoading}
-                  isStreaming={isStreaming}
-                  isMicActive={isMicActive}
-                  streamingMessage={streamingMessage}
-                  onSendMessage={handleSendMessage}
-                  onNextSpeaker={handleNextSpeaker}
-                  onToggleMic={handleToggleMic}
-                />
-              </Panel>
-            </PanelGroup>
-          ) : (
-            /* Mobile Layout */
-            <>
-              {/* Video Grid takes full screen */}
-              <VideoGridWithQueue
-                participants={participants}
-                user={user}
-                currentSpeakerId={currentSpeakerId}
-                nextSpeakerId={nextSpeakerId}
-                showSpeakerQueue={showSpeakerQueue}
-                speakerQueue={speakerQueue}
-                currentSpeakerIndex={currentSpeakerIndex}
-                onReshuffle={handleReshuffle}
-              />
-
-              {/* Mobile Chat FAB */}
-              {!isChatOpen && (
-                <ChatFAB
-                  onClick={() => setIsChatOpen(true)}
-                  unreadCount={0} // TODO: Add unread message tracking
-                />
-              )}
-
-              {/* Mobile Chat Overlay */}
-              {isChatOpen && (
-                <ChatOverlay onClose={() => setIsChatOpen(false)}>
-                  <MeetingChatPanel
-                    messages={messages}
-                    totalParticipants={totalParticipants}
-                    isLoading={isLoading}
-                    isStreaming={isStreaming}
-                    isMicActive={isMicActive}
-                    streamingMessage={streamingMessage}
-                    onSendMessage={handleSendMessage}
-                    onNextSpeaker={handleNextSpeaker}
-                    onToggleMic={handleToggleMic}
-                  />
-                </ChatOverlay>
-              )}
-            </>
-          )}
+          <MeetingLayoutProvider
+            participants={participants}
+            user={user}
+            messages={messages}
+            messagesWithAudio={messagesWithAudio}
+            currentSpeakerId={currentSpeakerId}
+            nextSpeakerId={nextSpeakerId}
+            currentSpeakerIndex={currentSpeakerIndex}
+            showSpeakerQueue={showSpeakerQueue}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
+            isMicActive={isMicActive}
+            streamingMessage={streamingMessage}
+            onSendMessage={handleSendMessage}
+            onNextSpeaker={handleNextSpeaker}
+            onToggleMic={handleToggleMic}
+            onReshuffle={handleReshuffle}
+          />
         </div>
 
         {/* Expert Preview Dialog */}

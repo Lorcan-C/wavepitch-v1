@@ -31,6 +31,8 @@ export const MeetingSetupSchema = z.object({
       name: z.string(),
       role: z.string(),
       bio: z.string(),
+      avatar: z.string().optional(),
+      color: z.string().optional(),
     }),
   ),
 });
