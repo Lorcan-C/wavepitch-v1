@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.20",
-    "@clerk/clerk-react": "^5.43.1",
+    "@clerk/clerk-react": "^5.45.0",
     "@elevenlabs/elevenlabs-js": "^2.11.0",
     "@growthbook/growthbook-react": "^1.6.1",
     "@hookform/resolvers": "^3.10.0",

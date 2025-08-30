@@ -4,7 +4,6 @@ import { immer } from 'zustand/middleware/immer';
 
 import { MeetingData } from '../hooks/useClerkSupabase';
 import { ExpertApiData, MeetingSummary, Message, Participant } from '../meetings/types';
-import { meetingSummaryService } from '../services/MeetingSummaryService';
 
 interface MeetingState {
   meetingId: string;
@@ -227,7 +226,12 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
           });
 
           try {
-            const summary = await meetingSummaryService.generateMeetingSummary(get().messages);
+            // TODO: Implement summary generation via API call
+            const summary = {
+              keyIdeas: ['Summary generation disabled'],
+              strategicQuestions: [],
+              decisions: [],
+            };
             set((state) => {
               state.summary = summary;
               state.isGeneratingSummary = false;

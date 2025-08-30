@@ -1,4 +1,4 @@
-import { PitchProcessingService } from '../../src/services/PitchProcessingService';
+import { PitchProcessingService } from '../services/PitchProcessingService';
 
 export default async function handler(req: Request) {
   // Set CORS headers

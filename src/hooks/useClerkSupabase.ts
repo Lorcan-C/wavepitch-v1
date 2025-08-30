@@ -63,8 +63,19 @@ export function useClerkSupabase() {
       }
 
       try {
+        console.log(
+          'Saving meeting:',
+          meetingData.meetingId,
+          'with',
+          meetingData.messages.length,
+          'messages',
+        );
+
         const client = createAuthenticatedClient();
-        if (!client) return false;
+        if (!client) {
+          console.error('Failed to create Supabase client');
+          return false;
+        }
 
         const startTime = meetingData.meetingStartTime || new Date().toISOString();
         const endTime = meetingData.meetingEndTime || new Date().toISOString();
@@ -95,7 +106,15 @@ export function useClerkSupabase() {
           sessionId: meetingData.sessionId,
         };
 
-        const { error } = await client.from('conversations').upsert(
+        console.log(
+          'Calling Supabase API with',
+          meetingData.messages.length,
+          'messages - payload size:',
+          JSON.stringify(transcriptData).length,
+          'bytes',
+        );
+
+        const { data, error } = await client.from('conversations').upsert(
           {
             id: meetingData.meetingId,
             title: meetingData.meetingTitle,
@@ -114,14 +133,24 @@ export function useClerkSupabase() {
         );
 
         if (error) {
-          console.error('Failed to save meeting to Supabase:', error);
+          console.error('Supabase API error:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+          });
           return false;
         }
 
-        console.log('Meeting saved to Supabase successfully');
+        console.log(
+          '✅ Supabase save successful - record ID:',
+          data?.[0]?.id || meetingData.meetingId,
+        );
         return true;
       } catch (error) {
-        console.error('Error saving meeting:', error);
+        console.error(
+          'Save failed with exception:',
+          error instanceof Error ? error.message : error,
+        );
         return false;
       }
     },

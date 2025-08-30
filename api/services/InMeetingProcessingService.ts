@@ -1,8 +1,8 @@
 import { generateText, streamText } from 'ai';
 
-import { DEFAULT_TEXT_MODEL } from '../lib/ai';
+import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
+import { MeetingContextService } from '../../src/services/MeetingContextService';
 import { getLangfusePrompt } from '../lib/langfuse';
-import { MeetingContextService } from './MeetingContextService';
 
 interface MeetingContext {
   experts: Array<{

@@ -12,7 +12,6 @@ import { useMeetingStore } from '@/stores/meeting-store';
 
 import { MeetingSummaryDialog } from '../../components/meetings/MeetingSummaryDialog';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import { meetingSummaryService } from '../../services/MeetingSummaryService';
 import { MeetingSummary, Message, Participant, User } from '../types';
 import { ChatHeader } from './ChatHeader';
 import { MeetingLayoutProvider } from './MeetingLayoutProvider';
@@ -370,7 +369,12 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setMeetingSummary(null);
 
     try {
-      const summary = await meetingSummaryService.generateMeetingSummary(messages);
+      // TODO: Implement summary generation via API call
+      const summary = {
+        keyIdeas: ['Summary generation disabled'],
+        strategicQuestions: [],
+        decisions: [],
+      };
       setMeetingSummary(summary);
       toast.success('Meeting summary generated');
     } catch (error) {

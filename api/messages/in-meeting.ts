@@ -1,4 +1,4 @@
-import { InMeetingProcessingService } from '../../src/services/InMeetingProcessingService';
+import { InMeetingProcessingService } from '../services/InMeetingProcessingService';
 
 export default async function handler(req: Request) {
   // Set CORS headers
