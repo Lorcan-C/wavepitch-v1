@@ -60,3 +60,21 @@ export interface ExpertApiData {
   avatar?: string;
   color?: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red' | string;
 }
+
+export interface MeetingSummary {
+  keyIdeas: string[];
+  strategicQuestions: string[];
+  decisions: string[];
+}
+
+export interface MeetingSummaryState {
+  summary: MeetingSummary | null;
+  isGenerating: boolean;
+  error: string | null;
+  generatedAt: string | null;
+}
+
+export interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}

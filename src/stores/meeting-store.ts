@@ -3,7 +3,8 @@ import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 import { supabase } from '../lib/supabase';
-import { ExpertApiData, Message, Participant } from '../meetings/types';
+import { ExpertApiData, MeetingSummary, Message, Participant } from '../meetings/types';
+import { meetingSummaryService } from '../services/MeetingSummaryService';
 
 interface MeetingState {
   meetingId: string;
@@ -18,6 +19,10 @@ interface MeetingState {
   meetingStartTime: string | null;
   meetingEndTime: string | null;
   isMeetingActive: boolean;
+  // Summary state
+  summary: MeetingSummary | null;
+  isGeneratingSummary: boolean;
+  summaryError: string | null;
 }
 
 interface MeetingActions {
@@ -40,6 +45,10 @@ interface MeetingActions {
   startMeeting: () => void;
   endMeeting: () => Promise<void>;
   saveMeetingToSupabase: () => Promise<boolean>;
+  resumeMeeting: (conversationId: string) => Promise<void>;
+  // Summary actions
+  generateSummary: () => Promise<void>;
+  clearSummary: () => void;
 }
 
 const initialState: MeetingState = {
@@ -54,6 +63,9 @@ const initialState: MeetingState = {
   meetingStartTime: null,
   meetingEndTime: null,
   isMeetingActive: false,
+  summary: null,
+  isGeneratingSummary: false,
+  summaryError: null,
 };
 
 export const useMeetingStore = create<MeetingState & MeetingActions>()(
@@ -257,6 +269,73 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
             return false;
           }
         },
+
+        resumeMeeting: async (conversationId: string) => {
+          try {
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
+            if (!user) throw new Error('User not authenticated');
+
+            const { data, error } = await supabase
+              .from('conversations')
+              .select('*')
+              .eq('id', conversationId)
+              .eq('user_id', user.id)
+              .single();
+
+            if (error) throw error;
+
+            const transcriptData = data.transcript_data;
+            set((state) => {
+              state.meetingId = data.id;
+              state.sessionId = data.meeting_id;
+              state.meetingTitle = data.title;
+              state.participants = transcriptData.participants || [];
+              state.messages = transcriptData.messages || [];
+              state.currentSpeakerIndex = 0;
+              state.isMeetingActive = true;
+              state.meetingStartTime = new Date().toISOString();
+              state.meetingEndTime = null;
+              state.error = null;
+            });
+          } catch (error) {
+            console.error('Failed to resume meeting:', error);
+            set((state) => {
+              state.error = 'Failed to resume meeting';
+            });
+          }
+        },
+
+        // Summary actions
+        generateSummary: async () => {
+          set((state) => {
+            state.isGeneratingSummary = true;
+            state.summaryError = null;
+          });
+
+          try {
+            const summary = await meetingSummaryService.generateMeetingSummary(get().messages);
+            set((state) => {
+              state.summary = summary;
+              state.isGeneratingSummary = false;
+            });
+          } catch (error) {
+            console.error('Failed to generate summary:', error);
+            set((state) => {
+              state.summaryError =
+                error instanceof Error ? error.message : 'Failed to generate summary';
+              state.isGeneratingSummary = false;
+            });
+          }
+        },
+
+        clearSummary: () =>
+          set((state) => {
+            state.summary = null;
+            state.summaryError = null;
+            state.isGeneratingSummary = false;
+          }),
       })),
       {
         name: 'meeting-storage',
@@ -271,6 +350,8 @@ export const useMeetingStore = create<MeetingState & MeetingActions>()(
           meetingStartTime: state.meetingStartTime,
           meetingEndTime: state.meetingEndTime,
           isMeetingActive: state.isMeetingActive,
+          summary: state.summary,
+          isGeneratingSummary: state.isGeneratingSummary,
         }),
       },
     ),

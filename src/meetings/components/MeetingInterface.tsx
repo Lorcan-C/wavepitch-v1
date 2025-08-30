@@ -3,17 +3,21 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useNavigate } from 'react-router-dom';
 
+import { toast } from 'sonner';
+
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { voiceAssigner } from '@/services/voice';
 
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { meetingSummaryService } from '../../services/MeetingSummaryService';
 import { useIsDesktop } from '../hooks/useIsDesktop';
-import { Message, Participant, SpeakerQueueItem, User } from '../types';
+import { MeetingSummary, Message, Participant, SpeakerQueueItem, User } from '../types';
 import { ChatFAB } from './ChatFAB';
 import { ChatHeader } from './ChatHeader';
 import { ChatOverlay } from './ChatOverlay';
 import { MeetingChatPanel } from './MeetingChatPanel';
+import { MeetingSummaryDialog } from './MeetingSummaryDialog';
 import { VideoGridWithQueue } from './VideoGridWithQueue';
 
 interface MeetingInterfaceProps {
@@ -60,6 +64,11 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
   // Expert preview dialog state
   const [showExpertPreview, setShowExpertPreview] = useState(true);
+
+  // Summary dialog state
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   // Chat panel size state with localStorage persistence
   const [chatPanelSize, setChatPanelSize] = useState(() => {
@@ -367,8 +376,26 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     setShowSpeakerQueue((prev) => !prev);
   };
 
-  const handleShowSummary = () => {
-    console.log('Show summary requested');
+  const handleShowSummary = async () => {
+    if (messages.length === 0) {
+      toast.info('No messages to summarize yet');
+      return;
+    }
+
+    setSummaryDialogOpen(true);
+    setIsGeneratingSummary(true);
+    setMeetingSummary(null);
+
+    try {
+      const summary = await meetingSummaryService.generateMeetingSummary(messages);
+      setMeetingSummary(summary);
+      toast.success('Meeting summary generated');
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      toast.error('Failed to generate meeting summary');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
   };
 
   const handleEndMeeting = () => {
@@ -510,6 +537,15 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         {/* Expert Preview Dialog */}
         <ExpertPreviewDialog open={showExpertPreview} onOpenChange={setShowExpertPreview} />
+
+        {/* Meeting Summary Dialog */}
+        <MeetingSummaryDialog
+          isOpen={summaryDialogOpen}
+          onClose={() => setSummaryDialogOpen(false)}
+          summary={meetingSummary}
+          isLoading={isGeneratingSummary}
+          meetingTitle={meetingTitle}
+        />
       </div>
     </div>
   );
