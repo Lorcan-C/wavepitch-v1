@@ -3,6 +3,7 @@ import React from 'react';
 import { Shuffle, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { getParticipantColor } from '@/utils/participantColors';
 
 import { SpeakerQueueItem } from '../types';
 
@@ -85,7 +86,10 @@ export const SpeakerQueue: React.FC<SpeakerQueueProps> = ({
               </div>
 
               {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm text-white"
+                style={{ backgroundColor: getParticipantColor(speaker.id) }}
+              >
                 {speaker.avatar}
               </div>
 

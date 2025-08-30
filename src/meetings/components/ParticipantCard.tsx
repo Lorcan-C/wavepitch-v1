@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { getParticipantColor } from '@/utils/participantColors';
+
 import { Participant, SpeakingState } from '../types';
 import { useParticipantClickHandlers } from './ParticipantClickHandlers';
 import { ParticipantStatusBadge } from './ParticipantStatusBadge';
@@ -44,10 +46,7 @@ export const ParticipantCard: React.FC<ParticipantCardProps> = ({
   const isListening = participant.isListening || false;
   const isUserSpeaking = isUser && (isSpeaking || isListening);
 
-  const participantColor =
-    typeof participant.color === 'string' && participant.color.startsWith('#')
-      ? participant.color
-      : '#888888';
+  const participantColor = getParticipantColor(participant.id, participant.color);
 
   const { handleClick, isPersonaClickable, isUserClickable } = useParticipantClickHandlers({
     isUser,
