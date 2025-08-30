@@ -133,14 +133,24 @@ export const MeetingPage: React.FC = () => {
   const nextSpeakerId = participants[1]?.id;
 
   return (
-    <MeetingInterface
-      meetingId={meetingId || 'default-meeting'}
-      meetingTitle={meetingTitle}
-      participants={participants}
-      user={user}
-      messages={messages}
-      currentSpeakerId={currentSpeakerId}
-      nextSpeakerId={nextSpeakerId}
-    />
+    <div
+      className="min-h-screen relative"
+      style={{
+        backgroundImage: 'url(/images/pitchflow_v2.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <MeetingInterface
+        meetingId={meetingId || 'default-meeting'}
+        meetingTitle={meetingTitle}
+        participants={participants}
+        user={user}
+        messages={messages}
+        currentSpeakerId={currentSpeakerId}
+        nextSpeakerId={nextSpeakerId}
+      />
+    </div>
   );
 };
