@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { format } from 'date-fns';
 
+import { AppContainer } from '../../components/AppContainer';
 import { Button } from '../../components/ui/button';
 import { ConversationsService, StoredConversation } from '../../services/conversationsService';
 
@@ -121,6 +122,10 @@ const HubPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
+            <AppContainer>
+              <div className="p-8">{/* Blank container */}</div>
+            </AppContainer>
+
             {conversations.map((conversation) => (
               <div
                 key={conversation.id}
