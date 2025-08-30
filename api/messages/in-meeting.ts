@@ -236,7 +236,7 @@ async function handleGenerateResponse(
     const prompt = contextPrompt.compile({
       expertName: expert.name,
       expertRole: expert.role,
-      expertise: expert.bio,
+      expertise: expert.expertise,
       meetingContext: meetingContext.meetingContext,
       currentPhase: (currentPhase as string) || 'discussion',
       conversationHistory: historyText,
@@ -327,7 +327,7 @@ async function handleAdvanceSpeaker(
       prompt: transitionPrompt.compile({
         expertName: nextSpeaker.name,
         expertRole: nextSpeaker.role,
-        expertise: nextSpeaker.bio,
+        expertise: nextSpeaker.expertise,
         meetingContext: meetingContext.meetingContext,
       }),
     });
