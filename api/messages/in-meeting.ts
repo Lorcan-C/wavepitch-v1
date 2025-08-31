@@ -62,30 +62,32 @@ export default async function handler(req: Request) {
 
     let result;
 
-    if (type === 'generate-response') {
-      result = await InMeetingProcessingService.generateResponse(
-        sessionId,
-        body.expertId as string,
-        body.conversationHistory as Array<{
-          isUser: boolean;
-          sender: string;
-          message: string;
-          timestamp: number;
-        }>,
-        body.currentPhase as string,
-        body.userMessage as string,
-      );
+    // if (type === 'generate-response') {
+    //   result = await InMeetingProcessingService.generateResponse(
+    //     sessionId,
+    //     body.expertId as string,
+    //     body.conversationHistory as Array<{
+    //       isUser: boolean;
+    //       sender: string;
+    //       message: string;
+    //       timestamp: number;
+    //     }>,
+    //     body.currentPhase as string,
+    //     body.userMessage as string,
+    //   );
 
-      if (result.success && result.data) {
-        return result.data.toDataStreamResponse({
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Cache-Control': 'no-cache',
-          },
-        });
-      }
-    } else if (type === 'advance-speaker') {
+    //   if (result.success && result.data) {
+    //     return result.data.toDataStreamResponse({
+    //       headers: {
+    //         ...corsHeaders,
+    //         'Content-Type': 'text/plain; charset=utf-8',
+    //         'Cache-Control': 'no-cache',
+    //       },
+    //     });
+    //   }
+    // }
+
+    if (type === 'advance-speaker') {
       result = await InMeetingProcessingService.advanceSpeaker(
         sessionId,
         body.currentSpeaker as string,
