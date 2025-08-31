@@ -3,7 +3,7 @@ import { Participant } from '@/meetings/types';
 import { SpeakerRotationService } from './SpeakerRotationService';
 
 export class ResponseContextService {
-  static getNextAgent(participants: Participant[], currentSpeakerIndex: number) {
+  static getNextAgent(participants: Participant[], currentSpeakerIndex: number, meetingPurpose: string) {
     try {
       const nextAgent = SpeakerRotationService.getCurrentSpeaker(participants, currentSpeakerIndex);
 
@@ -13,6 +13,7 @@ export class ResponseContextService {
         agentName: nextAgent.name,
         agentRole: nextAgent.role,
         agentBio: nextAgent.description,
+        meetingPurpose: meetingPurpose,
       };
     } catch (error) {
       console.log('ResponseContextService: Failed to compile agent context');

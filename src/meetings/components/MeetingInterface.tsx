@@ -9,6 +9,10 @@ import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { MessageCommitService } from '@/services/MessageCommitService';
+import { ResponseContextService } from '@/services/ResponseContextService';
+import { AIResponseService } from '@/services/AIResponseService';
+import { AIResponseHandling } from '@/services/AIResponseHandling';
+import { SpeakerRotationService } from '@/services/SpeakerRotationService';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
 
@@ -145,62 +149,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     }
   }, [meetingId, participants, meetingTitle, conversationContext.currentPhase, sessionId]);
 
-  // Streaming text handler based on research recommendations
-  const handleStreamingResponse = useCallback(
-    async (response: Response, expertId: string, expertName: string) => {
-      if (!response.body) return;
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let streamedContent = '';
-
-      setIsStreaming(true);
-      setStreamingMessage('');
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          streamedContent += chunk;
-          setStreamingMessage(streamedContent);
-        }
-
-        // Add completed message to conversation
-        const completedMessage: Message = {
-          id: Date.now().toString(),
-          content: streamedContent,
-          sender: expertId,
-          isUser: false,
-          timestamp: Date.now(),
-          senderName: expertName,
-        };
-
-        setMessages((prev) => [...prev, completedMessage]);
-        setStreamingMessage('');
-      } catch (error) {
-        console.error('Streaming error:', error);
-      } finally {
-        setIsStreaming(false);
-      }
-    },
-    [],
-  );
-
-  // Context-aware message truncation (research recommendation)
-  const truncateContextIfNeeded = useCallback((currentMessages: Message[]) => {
-    const MAX_MESSAGES = 20; // Keep last 20 messages for context
-    if (currentMessages.length > MAX_MESSAGES) {
-      const truncated = currentMessages.slice(-MAX_MESSAGES);
-      setConversationContext((prev) => ({
-        ...prev,
-        lastTruncation: Date.now(),
-      }));
-      return truncated;
-    }
-    return currentMessages;
-  }, []);
 
   // Enhanced message handler using existing API endpoints
   const handleSendMessage = useCallback(
@@ -217,50 +165,44 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       const updatedMessages = MessageCommitService.commitMessage(content, user, messages);
       setMessages(updatedMessages);
 
-      // Get current speaker (next in queue)
-      const currentExpert = participants[currentSpeakerIndex % participants.length];
-      if (!currentExpert) return;
-
+      // Get agent context for next speaker
+      const agentContext = ResponseContextService.getNextAgent(participants, currentSpeakerIndex, meetingTitle);
+      const currentExpert = SpeakerRotationService.getCurrentSpeaker(participants, currentSpeakerIndex);
+      
       setIsLoading(true);
 
       try {
-        // Truncate context for token optimization
-        const contextMessages = truncateContextIfNeeded(updatedMessages);
-
-        // Call existing in-meeting API
-        const response = await fetch('/api/messages/in-meeting', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionId || meetingId,
-            type: 'generate-response',
-            expertId: currentExpert.id,
-            conversationHistory: contextMessages.map((msg) => ({
-              sender: msg.senderName,
-              message: msg.content,
-              timestamp: msg.timestamp,
-              isUser: msg.isUser,
-            })),
-            currentPhase: conversationContext.currentPhase,
-            userMessage: content,
-          }),
-          signal: abortControllerRef.current.signal,
+        // Create user message object for AI service
+        const userMessage = MessageCommitService.createUserMessage(content, user);
+        
+        // Call new AI service
+        const aiResult = await AIResponseService.generateResponse({
+          sessionId: sessionId || meetingId,
+          userMessage,
+          agentContext,
         });
 
-        if (response.ok) {
-          await handleStreamingResponse(response, currentExpert.id, currentExpert.name);
-          // Advance to next speaker
-          setCurrentSpeakerIndex((prev) => (prev + 1) % participants.length);
-        } else {
-          throw new Error(`API responded with status ${response.status}`);
-        }
+        // Process AI response
+        const aiMessage = await AIResponseHandling.processResponse(
+          aiResult.response, 
+          currentExpert.id, 
+          currentExpert.name
+        );
+        
+        // Add AI message to conversation
+        setMessages((prev) => [...prev, aiMessage]);
+        
+        // Advance to next speaker
+        const nextIndex = SpeakerRotationService.advanceToNext(currentSpeakerIndex, participants.length);
+        setCurrentSpeakerIndex(nextIndex);
+        
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Failed to generate AI response:', error);
           // Add error message to conversation
           const errorMessage: Message = {
             id: Date.now().toString(),
-            content: "Sorry, I'm having trouble responding right now. Please try again.",
+            content: "Sorry, the response service is currently experiencing some difficulties.",
             sender: currentExpert.id,
             isUser: false,
             timestamp: Date.now(),
@@ -279,9 +221,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       currentSpeakerIndex,
       sessionId,
       meetingId,
-      conversationContext.currentPhase,
-      truncateContextIfNeeded,
-      handleStreamingResponse,
+      meetingTitle,
     ],
   );
 

@@ -4,7 +4,7 @@ export interface Participant {
   role: string;
   avatar: string;
   color: 'purple' | 'blue' | 'pink' | 'green' | 'yellow' | 'red' | string;
-  description?: string;
+  description: string;
   isUser?: boolean;
   isSpeaking?: boolean;
   isNextToSpeak?: boolean;
