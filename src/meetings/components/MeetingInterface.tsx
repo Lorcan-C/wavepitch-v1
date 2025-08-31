@@ -8,6 +8,7 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
+import { MessageCommitService } from '@/services/MessageCommitService';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
 
@@ -215,17 +216,8 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       }
       abortControllerRef.current = new AbortController();
 
-      // Add user message immediately
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        content,
-        sender: user.id,
-        isUser: true,
-        timestamp: Date.now(),
-        senderName: user.name,
-      };
-
-      const updatedMessages = [...messages, userMessage];
+      // Commit user message immediately
+      const updatedMessages = MessageCommitService.commitMessage(content, user, messages);
       setMessages(updatedMessages);
 
       // Get current speaker (next in queue)
