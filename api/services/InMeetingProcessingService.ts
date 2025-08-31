@@ -1,4 +1,4 @@
-import { generateText, streamText } from 'ai';
+import { streamText } from 'ai';
 
 import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
 import { MeetingContextService } from '../../src/services/MeetingContextService';
@@ -114,20 +114,6 @@ export class InMeetingProcessingService {
       const nextIndex = (currentIndex + 1) % meetingContext.experts.length;
       const nextSpeaker = meetingContext.experts[nextIndex];
 
-      // Get transition prompt from Langfuse
-      const transitionPrompt = await getLangfusePrompt('speaker-transition');
-
-      // Pre-generate next response
-      const preGeneratedResponse = await generateText({
-        model: DEFAULT_TEXT_MODEL,
-        prompt: transitionPrompt.compile({
-          expertName: nextSpeaker.name,
-          expertRole: nextSpeaker.role,
-          expertise: nextSpeaker.expertise,
-          meetingContext: meetingContext.meetingContext,
-        }),
-      });
-
       const processingTime = Date.now() - startTime;
 
       return {
@@ -135,7 +121,6 @@ export class InMeetingProcessingService {
         data: {
           nextSpeaker: nextSpeaker.id,
           nextSpeakerName: nextSpeaker.name,
-          preGeneratedResponse: preGeneratedResponse.text,
           phase: meetingContext.currentPhase || 'discussion',
         },
         metadata: {
