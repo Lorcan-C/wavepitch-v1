@@ -1,4 +1,4 @@
-import { ServerPromptService } from '../../src/services/ServerPromptService';
+import { ServerPromptService } from '../services/ServerPromptService';
 
 export default async function handler(req: Request) {
   const corsHeaders = {

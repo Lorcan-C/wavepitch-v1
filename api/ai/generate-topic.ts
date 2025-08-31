@@ -1,7 +1,7 @@
 import { generateText } from 'ai';
 
 import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
-import { ServerPromptService } from '../../src/services/ServerPromptService';
+import { ServerPromptService } from '../services/ServerPromptService';
 
 export default async function handler(req: Request) {
   const corsHeaders = {

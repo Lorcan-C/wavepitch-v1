@@ -17,7 +17,7 @@ interface MeetingContext {
 
 export interface InMeetingProcessingResult {
   success: boolean;
-  data?: unknown;
+  data?: ReturnType<typeof streamText> extends Promise<infer T> ? T : never;
   error?: string;
   metadata?: {
     processingTime: number;

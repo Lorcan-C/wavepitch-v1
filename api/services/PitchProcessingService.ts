@@ -1,13 +1,13 @@
 import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
-import { DEFAULT_TEXT_MODEL } from '../lib/ai';
-import { ServerPromptService } from './ServerPromptService';
+import { DEFAULT_TEXT_MODEL } from '../../src/lib/ai';
 import {
   type MeetingSetup,
   MeetingSetupSchema,
   type PitchContext,
-} from './pitch-processing/validation';
+} from '../../src/services/pitch-processing/validation';
+import { ServerPromptService } from './ServerPromptService';
 
 export interface PitchProcessingResult {
   processedContext: PitchContext;
@@ -85,13 +85,15 @@ export class PitchProcessingService {
     return {
       topic: meetingSetup.meetingContext,
       opportunity: pitchDescription.slice(0, 200),
-      stakeholders: meetingSetup.experts.map((expert) => ({
-        name: expert.name,
-        role: expert.role,
-        relationship: 'meeting participant',
-        mentioned_as: expert.name,
-        involvement_level: 'high' as const,
-      })),
+      stakeholders: meetingSetup.experts.map(
+        (expert: { name: string; role: string; bio: string }) => ({
+          name: expert.name,
+          role: expert.role,
+          relationship: 'meeting participant',
+          mentioned_as: expert.name,
+          involvement_level: 'high' as const,
+        }),
+      ),
       context: 'pitch' as const,
       user_role: 'presenter',
       key_points: [meetingSetup.meetingPurpose],

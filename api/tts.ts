@@ -38,15 +38,13 @@ export default async function handler(request: Request) {
     }
 
     const audio = await generateSpeech({
-      model: openai.speech('tts-1', {
-        apiKey: process.env.OPENAI_API_KEY,
-      }),
+      model: openai.speech('tts-1'),
       text,
       voice,
     });
 
     // Return the audio data directly with appropriate headers
-    return new Response(audio.audioData, {
+    return new Response(audio.audio, {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=3600',
