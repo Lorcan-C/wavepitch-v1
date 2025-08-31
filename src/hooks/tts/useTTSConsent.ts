@@ -19,11 +19,14 @@ export function useTTSConsent() {
   }, [setCapabilities]);
 
   const enableAudioReplies = useCallback(async () => {
+    console.log('TTS: User enabled audio replies');
     setAudioRepliesEnabled(true);
-    await detectCapabilities();
+    const caps = await detectCapabilities();
+    console.log('TTS: Capabilities detected', caps);
   }, [setAudioRepliesEnabled, detectCapabilities]);
 
   const disableAudioReplies = useCallback(() => {
+    console.log('TTS: User disabled audio replies');
     setAudioRepliesEnabled(false);
   }, [setAudioRepliesEnabled]);
 
