@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { MessageSquare, Users } from 'lucide-react';
 
+import { ThinkingIndicator } from '../../components/ui/ThinkingIndicator';
 import { KeyboardShortcutHint } from '../../components/ui/keyboard-shortcut-hint';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { Message } from '../types';
@@ -20,21 +21,6 @@ interface ChatPanelProps {
   isStreaming?: boolean;
   currentTranscript?: string;
 }
-
-const ThinkingIndicator: React.FC = () => {
-  return (
-    <div className="flex justify-start mb-4">
-      <div className="bg-gray-100 rounded-lg px-4 py-3 flex items-center gap-2">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-        </div>
-        <span className="text-sm text-gray-600">Thinking...</span>
-      </div>
-    </div>
-  );
-};
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
   messages,
@@ -148,7 +134,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 </div>
               )}
               {/* Show thinking indicator when loading but not streaming */}
-              {isLoading && !isStreaming && <ThinkingIndicator />}
+              <ThinkingIndicator
+                isLoading={isLoading}
+                isStreaming={isStreaming}
+                messageCount={messages.length}
+              />
             </>
           )}
 
