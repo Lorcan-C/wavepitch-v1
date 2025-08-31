@@ -10,8 +10,8 @@ import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 // import { useMessageAudio } from '@/hooks/useMessageAudio'; // Disabled - using TTSTextProcessingService instead
 import { AIResponseHandling } from '@/services/AIResponseHandling';
 import { AIResponseService } from '@/services/AIResponseService';
-import { MessageCommitService } from '@/services/MessageCommitService';
 import { MeetingDataCollector } from '@/services/MeetingDataCollector';
+import { MessageCommitService } from '@/services/MessageCommitService';
 import { ResponseContextService } from '@/services/ResponseContextService';
 import { SpeakerRotationService } from '@/services/SpeakerRotationService';
 import { TTSTextProcessingService } from '@/services/TTSTextProcessingService';
@@ -48,7 +48,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const navigate = useNavigate();
 
   // Clerk-Supabase integration
-  const { isAuthenticated, saveMeeting } = useClerkSupabase();
+  const { isAuthenticated, userId } = useClerkSupabase();
   const { endMeeting, getMeetingData } = useMeetingStore();
 
   // TTS integration
@@ -133,7 +133,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         });
 
         // Assign voices to AI participants for TTS
-        TTSVoiceSelectionService.assignVoices(participants, meetingId);
+        TTSVoiceSelectionService.assignVoices(participants, sessionId || meetingId);
         console.log('TTS voice assignments created for participants');
 
         setSessionId(meetingId);
@@ -225,7 +225,16 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         setIsLoading(false);
       }
     },
-    [messages, user, participants, currentSpeakerIndex, sessionId, meetingId, meetingTitle],
+    [
+      messages,
+      user,
+      participants,
+      currentSpeakerIndex,
+      sessionId,
+      meetingId,
+      meetingTitle,
+      audioRepliesEnabled,
+    ],
   );
 
   // Enhanced next speaker with advance-speaker API integration
@@ -274,7 +283,10 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
           // Generate TTS for pre-generated AI message if enabled
           if (audioRepliesEnabled) {
-            TTSTextProcessingService.processMessageForTTS(transitionMessage, sessionId || meetingId);
+            TTSTextProcessingService.processMessageForTTS(
+              transitionMessage,
+              sessionId || meetingId,
+            );
           }
         }
       } else {
@@ -286,7 +298,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       // Fallback to simple rotation
       setCurrentSpeakerIndex((prev) => (prev + 1) % participants.length);
     }
-  }, [participants, currentSpeakerIndex, sessionId, meetingId]);
+  }, [participants, currentSpeakerIndex, sessionId, meetingId, audioRepliesEnabled]);
 
   const handleToggleMic = useCallback(async () => {
     console.log('Mic toggled');
@@ -366,7 +378,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         // Collect and save meeting data using new service
         const meetingData = getMeetingData();
-        
+
         const completeMeetingData = await MeetingDataCollector.collect(
           meetingData.meetingId,
           meetingData.sessionId,
@@ -374,10 +386,10 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           meetingData.participants,
           meetingData.messages,
           meetingData.meetingStartTime || new Date().toISOString(),
-          meetingData.meetingEndTime
+          meetingData.meetingEndTime || new Date().toISOString(),
         );
 
-        const saved = await MeetingDataCollector.saveToSupabase(completeMeetingData, user.id);
+        const saved = await MeetingDataCollector.saveToSupabase(completeMeetingData, userId!);
 
         if (saved) {
           toast.success('Meeting saved successfully');
