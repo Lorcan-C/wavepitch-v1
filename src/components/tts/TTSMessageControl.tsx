@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 
-import { Pause, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+
+const WaveformIcon: React.FC = () => (
+  <div className="flex items-center gap-0.5">
+    <div className="w-0.5 h-2 bg-current" />
+    <div className="w-0.5 h-3 bg-current" />
+    <div className="w-0.5 h-1.5 bg-current" />
+    <div className="w-0.5 h-2.5 bg-current" />
+  </div>
+);
 
 export const TTSMessageControl: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -20,7 +29,7 @@ export const TTSMessageControl: React.FC = () => {
       className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
       title={isPlaying ? 'Pause audio' : 'Play audio'}
     >
-      {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+      {isPlaying ? <WaveformIcon /> : <Play className="h-3 w-3" />}
     </Button>
   );
 };
