@@ -188,6 +188,11 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         // Add AI message to conversation
         setMessages((prev) => [...prev, aiMessage]);
 
+        // Wait for message to be rendered before hiding loading
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 100);
+
         // Advance to next speaker
         const nextIndex = SpeakerRotationService.advanceToNext(
           currentSpeakerIndex,
@@ -209,6 +214,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           setMessages((prev) => [...prev, errorMessage]);
         }
       } finally {
+        // Only set loading false for error cases, success cases handled above
         setIsLoading(false);
       }
     },
