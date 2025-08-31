@@ -33,8 +33,8 @@ export const AI_MODELS = {
   },
 } as const;
 
-// Default model selection - now using Azure for text
-export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.AZURE_GPT_4O_MINI;
+// Default model selection - back to OpenAI for text
+export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4O_MINI;
 export const DEFAULT_SPEECH_MODEL = AI_MODELS.SPEECH.GPT_4O_MINI_TTS;
 
 // Legacy export for backward compatibility
