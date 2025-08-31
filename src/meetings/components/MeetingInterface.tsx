@@ -8,13 +8,8 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 // import { useMessageAudio } from '@/hooks/useMessageAudio'; // Disabled - using TTSTextProcessingService instead
-import { AIResponseHandling } from '@/services/AIResponseHandling';
-import { AIResponseService } from '@/services/AIResponseService';
 import { MeetingDataCollector } from '@/services/MeetingDataCollector';
-import { MessageCommitService } from '@/services/MessageCommitService';
-import { ResponseContextService } from '@/services/ResponseContextService';
-import { SpeakerRotationService } from '@/services/SpeakerRotationService';
-import { TTSTextProcessingService } from '@/services/TTSTextProcessingService';
+import { NextSpeakerService } from '@/services/NextSpeakerService';
 import { TTSVoiceSelectionService } from '@/services/TTSVoiceSelectionService';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
@@ -147,155 +142,71 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     }
   }, [meetingId, participants, meetingTitle, sessionId]);
 
-  // Enhanced message handler using existing API endpoints
   const handleSendMessage = useCallback(
     async (content: string) => {
-      console.log('Sending message:', content);
-
-      // Cancel any ongoing generation
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
       abortControllerRef.current = new AbortController();
 
-      // Commit user message immediately
-      const updatedMessages = MessageCommitService.commitMessage(content, user, messages);
-      setMessages(updatedMessages);
-
-      // Get agent context for next speaker
-      const agentContext = ResponseContextService.getNextAgent(
+      await NextSpeakerService.generateNextMessage({
         participants,
         currentSpeakerIndex,
+        messages,
+        sessionId: sessionId || meetingId,
+        meetingId,
         meetingTitle,
-      );
-      const currentExpert = SpeakerRotationService.getCurrentSpeaker(
-        participants,
-        currentSpeakerIndex,
-      );
-
-      setIsLoading(true);
-
-      try {
-        // Create user message object for AI service
-        const userMessage = MessageCommitService.createUserMessage(content, user);
-
-        // Call new AI service
-        const aiResult = await AIResponseService.generateResponse({
-          sessionId: sessionId || meetingId,
-          userMessage,
-          agentContext,
-        });
-
-        // Process AI response
-        const aiMessage = await AIResponseHandling.processResponse(
-          aiResult.response,
-          currentExpert.id,
-          currentExpert.name,
-        );
-
-        // Add AI message to conversation
-        setMessages((prev) => [...prev, aiMessage]);
-
-        // Generate TTS for AI message if enabled
-        if (audioRepliesEnabled && !aiMessage.isUser) {
-          TTSTextProcessingService.processMessageForTTS(aiMessage);
-        }
-
-        // Advance to next speaker
-        const nextIndex = SpeakerRotationService.advanceToNext(
-          currentSpeakerIndex,
-          participants.length,
-        );
-        setCurrentSpeakerIndex(nextIndex);
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Failed to generate AI response:', error);
-          // Add error message to conversation
-          const errorMessage: Message = {
-            id: Date.now().toString(),
-            content: 'Sorry, the response service is currently experiencing some difficulties.',
-            sender: currentExpert.id,
-            isUser: false,
-            timestamp: Date.now(),
-            senderName: currentExpert.name,
-          };
-          setMessages((prev) => [...prev, errorMessage]);
-        }
-      } finally {
-        setIsLoading(false);
-      }
+        audioRepliesEnabled,
+        user,
+        userMessage: content,
+        abortController: abortControllerRef.current,
+        onSpeakerIndexChange: setCurrentSpeakerIndex,
+        onMessageAdd: (message) => setMessages((prev) => [...prev, message]),
+        onSetMessages: setMessages,
+        onSetLoading: setIsLoading,
+      });
     },
     [
-      messages,
-      user,
       participants,
       currentSpeakerIndex,
+      messages,
       sessionId,
       meetingId,
       meetingTitle,
       audioRepliesEnabled,
+      user,
     ],
   );
 
-  // Enhanced next speaker with advance-speaker API integration
   const handleNextSpeaker = useCallback(async () => {
-    console.log('Next speaker requested');
-
-    // Cancel any ongoing generation
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+    abortControllerRef.current = new AbortController();
 
-    const currentExpert = participants[currentSpeakerIndex % participants.length];
-
-    try {
-      // Use existing advance-speaker API for intelligent transitions
-      const response = await fetch('/api/messages/in-meeting', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: sessionId || meetingId,
-          type: 'advance-speaker',
-          currentSpeaker: currentExpert?.id,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        // Find next speaker index
-        const nextSpeakerIndex = participants.findIndex((p) => p.id === data.nextSpeaker);
-        if (nextSpeakerIndex !== -1) {
-          setCurrentSpeakerIndex(nextSpeakerIndex);
-        }
-
-        // Add pre-generated response if available
-        if (data.preGeneratedResponse) {
-          const transitionMessage: Message = {
-            id: Date.now().toString(),
-            content: data.preGeneratedResponse,
-            sender: data.nextSpeaker,
-            isUser: false,
-            timestamp: Date.now(),
-            senderName: data.nextSpeakerName,
-          };
-          setMessages((prev) => [...prev, transitionMessage]);
-
-          // Generate TTS for pre-generated AI message if enabled
-          if (audioRepliesEnabled) {
-            TTSTextProcessingService.processMessageForTTS(transitionMessage);
-          }
-        }
-      } else {
-        // Fallback to simple rotation
-        setCurrentSpeakerIndex((prev) => (prev + 1) % participants.length);
-      }
-    } catch (error) {
-      console.error('Failed to advance speaker:', error);
-      // Fallback to simple rotation
-      setCurrentSpeakerIndex((prev) => (prev + 1) % participants.length);
-    }
-  }, [participants, currentSpeakerIndex, sessionId, meetingId, audioRepliesEnabled]);
+    await NextSpeakerService.generateNextMessage({
+      participants,
+      currentSpeakerIndex,
+      messages,
+      sessionId: sessionId || meetingId,
+      meetingId,
+      meetingTitle,
+      audioRepliesEnabled,
+      abortController: abortControllerRef.current,
+      onSpeakerIndexChange: setCurrentSpeakerIndex,
+      onMessageAdd: (message) => setMessages((prev) => [...prev, message]),
+      onSetMessages: setMessages,
+      onSetLoading: setIsLoading,
+    });
+  }, [
+    participants,
+    currentSpeakerIndex,
+    messages,
+    sessionId,
+    meetingId,
+    meetingTitle,
+    audioRepliesEnabled,
+  ]);
 
   const handleToggleMic = useCallback(async () => {
     console.log('Mic toggled');
