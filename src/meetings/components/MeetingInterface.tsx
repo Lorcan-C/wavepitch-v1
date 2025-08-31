@@ -13,8 +13,11 @@ import { AIResponseService } from '@/services/AIResponseService';
 import { MessageCommitService } from '@/services/MessageCommitService';
 import { ResponseContextService } from '@/services/ResponseContextService';
 import { SpeakerRotationService } from '@/services/SpeakerRotationService';
+import { TTSTextProcessingService } from '@/services/TTSTextProcessingService';
+import { TTSVoiceSelectionService } from '@/services/TTSVoiceSelectionService';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
+import { useTTSStore } from '@/stores/tts-store';
 
 import { MeetingSummaryDialog } from '../../components/meetings/MeetingSummaryDialog';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -46,6 +49,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   // Clerk-Supabase integration
   const { isAuthenticated, saveMeeting } = useClerkSupabase();
   const { endMeeting, getMeetingData } = useMeetingStore();
+
+  // TTS integration
+  const { audioRepliesEnabled } = useTTSStore();
 
   // UI State
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
@@ -124,9 +130,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           }),
         });
 
-        // Assign voices to AI participants
-        voiceAssigner.assignVoices(meetingId, participants);
-        console.log('Voice assignments created for session:', meetingId);
+        // Assign voices to AI participants for TTS
+        TTSVoiceSelectionService.assignVoices(participants);
+        console.log('TTS voice assignments created for participants');
 
         setSessionId(meetingId);
       } catch (error) {
@@ -188,10 +194,10 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         // Add AI message to conversation
         setMessages((prev) => [...prev, aiMessage]);
 
-        // Wait for message to be rendered before hiding loading
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 100);
+        // Generate TTS for AI message if enabled
+        if (audioRepliesEnabled && !aiMessage.isUser) {
+          TTSTextProcessingService.processMessageForTTS(aiMessage);
+        }
 
         // Advance to next speaker
         const nextIndex = SpeakerRotationService.advanceToNext(
@@ -214,7 +220,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           setMessages((prev) => [...prev, errorMessage]);
         }
       } finally {
-        // Only set loading false for error cases, success cases handled above
         setIsLoading(false);
       }
     },
@@ -264,6 +269,11 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             senderName: data.nextSpeakerName,
           };
           setMessages((prev) => [...prev, transitionMessage]);
+
+          // Generate TTS for pre-generated AI message if enabled
+          if (audioRepliesEnabled) {
+            TTSTextProcessingService.processMessageForTTS(transitionMessage);
+          }
         }
       } else {
         // Fallback to simple rotation
