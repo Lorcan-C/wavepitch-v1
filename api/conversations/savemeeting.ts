@@ -27,8 +27,13 @@ export default async function handler(req: Request) {
     }
 
     const supabase = createClient(
-      process.env.VITE_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!,
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      },
     );
 
     const conversationRecord = {
