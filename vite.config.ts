@@ -10,8 +10,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['@clerk/clerk-react', '@clerk/shared'],
-    exclude: [],
     esbuildOptions: {
       target: 'es2020',
     },
@@ -20,28 +18,10 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       external: [],
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            // Skip Clerk modules - let Vite handle them automatically
-            if (id.includes('/@clerk/')) return;
-
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor';
-            }
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-              return 'ui';
-            }
-          }
-        },
-      },
     },
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,
     },
-  },
-  ssr: {
-    noExternal: ['@clerk/clerk-react', '@clerk/shared'],
   },
 });
