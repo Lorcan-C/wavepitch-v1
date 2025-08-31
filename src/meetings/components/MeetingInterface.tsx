@@ -133,7 +133,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         });
 
         // Assign voices to AI participants for TTS
-        TTSVoiceSelectionService.assignVoices(participants, meetingId);
+        TTSVoiceSelectionService.assignVoices(participants);
         console.log('TTS voice assignments created for participants');
 
         setSessionId(meetingId);
@@ -198,7 +198,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         // Generate TTS for AI message if enabled
         if (audioRepliesEnabled && !aiMessage.isUser) {
-          TTSTextProcessingService.processMessageForTTS(aiMessage, sessionId || meetingId);
+          TTSTextProcessingService.processMessageForTTS(aiMessage);
         }
 
         // Advance to next speaker
@@ -283,10 +283,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
           // Generate TTS for pre-generated AI message if enabled
           if (audioRepliesEnabled) {
-            TTSTextProcessingService.processMessageForTTS(
-              transitionMessage,
-              sessionId || meetingId,
-            );
+            TTSTextProcessingService.processMessageForTTS(transitionMessage);
           }
         }
       } else {
