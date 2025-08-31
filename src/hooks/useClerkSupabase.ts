@@ -114,7 +114,7 @@ export function useClerkSupabase() {
           'bytes',
         );
 
-        const { data, error } = await client.from('conversations').upsert(
+        const { error } = await client.from('conversations').upsert(
           {
             id: meetingData.meetingId,
             title: meetingData.meetingTitle,
@@ -141,10 +141,7 @@ export function useClerkSupabase() {
           return false;
         }
 
-        console.log(
-          '✅ Supabase save successful - record ID:',
-          (data as unknown as Array<{ id: string }> | null)?.[0]?.id || meetingData.meetingId,
-        );
+        console.log('✅ Supabase save successful - record ID:', meetingData.meetingId);
         return true;
       } catch (error) {
         console.error(

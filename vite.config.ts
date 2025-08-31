@@ -23,9 +23,9 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('@clerk')) {
-              return 'clerk';
-            }
+            // Skip Clerk modules - let Vite handle them automatically
+            if (id.includes('/@clerk/')) return;
+
             if (id.includes('react') || id.includes('react-dom')) {
               return 'vendor';
             }
