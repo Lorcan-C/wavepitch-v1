@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { useAuth } from '@clerk/clerk-react';
-import { Eye, EyeOff, FileText, Mic, MicOff, Users, X } from 'lucide-react';
+import { Eye, EyeOff, FileText, Users, X } from 'lucide-react';
 
 import { MeetingTimer } from '@/components/MeetingTimer';
+import { TTSHeaderToggle } from '@/components/tts/TTSHeaderToggle';
 import { Button } from '@/components/ui/button';
 import { generateMeetingTopic } from '@/lib/meeting-topic-generator';
 
@@ -14,10 +15,8 @@ interface ChatHeaderProps {
   meetingId: string;
   participants: Participant[];
   user: User;
-  isMuted: boolean;
   showSpeakerQueue: boolean;
   meetingStartTime: string | null;
-  onToggleMute: () => void;
   onToggleSpeakerQueue: () => void;
   onShowSummary: () => void;
   onEndMeeting: () => void;
@@ -29,10 +28,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   meetingId: _meetingId, // eslint-disable-line @typescript-eslint/no-unused-vars
   participants: _participants, // eslint-disable-line @typescript-eslint/no-unused-vars
   user: _user, // eslint-disable-line @typescript-eslint/no-unused-vars
-  isMuted,
   showSpeakerQueue,
   meetingStartTime,
-  onToggleMute,
   onToggleSpeakerQueue,
   onShowSummary,
   onEndMeeting,
@@ -92,18 +89,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             <Users className="h-4 w-4" />
           </Button>
 
-          {/* Mute/Unmute */}
-          <Button
-            variant={isMuted ? 'destructive' : 'outline'}
-            size="sm"
-            onClick={() => {
-              console.log('Mute toggle clicked');
-              onToggleMute();
-            }}
-            title={isMuted ? 'Unmute' : 'Mute'}
-          >
-            {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
+          {/* TTS Toggle */}
+          <TTSHeaderToggle />
 
           {/* Toggle Speaker Queue */}
           <Button
