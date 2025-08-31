@@ -1,4 +1,3 @@
-import { createAzure } from '@ai-sdk/azure';
 import { openai } from '@ai-sdk/openai';
 import {
   generateText as aiGenerateText,
@@ -6,20 +5,10 @@ import {
   experimental_generateSpeech as generateSpeech,
 } from 'ai';
 
-// Azure OpenAI configuration
-const azure = createAzure({
-  baseURL: process.env.AZURE_OPENAI_ENDPOINT || 'https://wavepitch-mvp.openai.azure.com',
-  apiKey: process.env.AZURE_OPENAI_API_KEY || '',
-  apiVersion: '2024-12-01-preview',
-});
-
 // Model Configuration - Centralized model management
 export const AI_MODELS = {
   // Text generation models
   TEXT: {
-    // Azure models (using your deployment name)
-    AZURE_GPT_4O_MINI: azure('gpt-4o-mini'),
-    // OpenAI models (kept for fallback)
     GPT_4O: openai('gpt-4o'),
     GPT_4O_MINI: openai('gpt-4o-mini'),
     GPT_4: openai('gpt-4'),
