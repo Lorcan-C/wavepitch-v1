@@ -44,7 +44,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const { endMeeting, getMeetingData } = useMeetingStore();
 
   // UI State
-  const [isMuted, setIsMuted] = useState(false);
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -83,9 +82,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   });
 
   // Audio integration - automatically generates and plays audio for new messages
-  const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants, {
-    autoPlay: !isMuted,
-  });
+  const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants);
 
   // STT integration for voice input
   const {
@@ -374,11 +371,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     },
   ]);
 
-  const handleToggleMute = () => {
-    console.log('Mute toggled');
-    setIsMuted((prev) => !prev);
-  };
-
   const handleToggleSpeakerQueue = () => {
     console.log('Speaker queue toggled');
     setShowSpeakerQueue((prev) => !prev);
@@ -465,10 +457,8 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           meetingId={meetingId}
           participants={participants}
           user={user}
-          isMuted={isMuted}
           showSpeakerQueue={showSpeakerQueue}
           meetingStartTime={meetingStartTime}
-          onToggleMute={handleToggleMute}
           onToggleSpeakerQueue={handleToggleSpeakerQueue}
           onShowSummary={handleShowSummary}
           onEndMeeting={handleEndMeeting}

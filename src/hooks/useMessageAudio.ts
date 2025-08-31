@@ -4,7 +4,6 @@ import { Message } from '@/meetings/types';
 import { messageAudioService } from '@/services/audio/MessageAudioService';
 
 interface UseMessageAudioOptions {
-  autoPlay?: boolean;
   enabled?: boolean;
 }
 
@@ -14,7 +13,7 @@ export function useMessageAudio(
   participants: Array<{ id: string; name: string }>,
   options: UseMessageAudioOptions = {},
 ) {
-  const { autoPlay = true, enabled = true } = options;
+  const { enabled = true } = options;
   const [messagesWithAudio, setMessagesWithAudio] = useState<Message[]>(messages);
   const [isPlaying, setIsPlaying] = useState(false);
   const [userHasInteracted, setUserHasInteracted] = useState(false);
@@ -68,7 +67,7 @@ export function useMessageAudio(
 
   // Auto-play new messages only after user interaction
   useEffect(() => {
-    if (!autoPlay || !enabled || !userHasInteracted) return;
+    if (!enabled || !userHasInteracted) return;
 
     const playNewMessages = async () => {
       const newAudioMessages = messagesWithAudio.filter(
@@ -94,7 +93,7 @@ export function useMessageAudio(
     };
 
     playNewMessages();
-  }, [messagesWithAudio, autoPlay, enabled, userHasInteracted]);
+  }, [messagesWithAudio, enabled, userHasInteracted]);
 
   const playAudioMessage = (audioUrl: string): Promise<void> => {
     return new Promise((resolve, reject) => {
