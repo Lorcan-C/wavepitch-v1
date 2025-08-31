@@ -22,7 +22,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-xs lg:max-w-md ${isUser ? 'order-2' : 'order-1'}`}>
+      <div className={`w-4/5 ${isUser ? 'order-2' : 'order-1'}`}>
         {/* Sender name and timestamp */}
         <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
           <span className="text-xs font-medium text-gray-600">

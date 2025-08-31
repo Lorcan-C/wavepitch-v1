@@ -94,7 +94,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               {/* Show streaming message */}
               {isStreaming && streamingMessage && (
                 <div className="flex justify-start mb-4">
-                  <div className="max-w-xs lg:max-w-md">
+                  <div className="w-4/5">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium text-gray-600">AI Assistant</span>
                       <div className="flex gap-1">
@@ -115,7 +115,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               {/* Show live transcript when speaking */}
               {isMicActive && currentTranscript && (
                 <div className="flex justify-end mb-4">
-                  <div className="max-w-xs lg:max-w-md">
+                  <div className="w-4/5">
                     <div className="flex items-center gap-2 mb-1 justify-end">
                       <div className="flex gap-1">
                         <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
