@@ -133,7 +133,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         });
 
         // Assign voices to AI participants for TTS
-        TTSVoiceSelectionService.assignVoices(participants, sessionId || meetingId);
+        TTSVoiceSelectionService.assignVoices(participants, meetingId);
         console.log('TTS voice assignments created for participants');
 
         setSessionId(meetingId);
