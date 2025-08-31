@@ -3,7 +3,11 @@ import { Participant } from '@/meetings/types';
 import { SpeakerRotationService } from './SpeakerRotationService';
 
 export class ResponseContextService {
-  static getNextAgent(participants: Participant[], currentSpeakerIndex: number, meetingPurpose: string) {
+  static getNextAgent(
+    participants: Participant[],
+    currentSpeakerIndex: number,
+    meetingPurpose: string,
+  ) {
     try {
       const nextAgent = SpeakerRotationService.getCurrentSpeaker(participants, currentSpeakerIndex);
 
@@ -12,7 +16,7 @@ export class ResponseContextService {
       return {
         agentName: nextAgent.name,
         agentRole: nextAgent.role,
-        agentBio: nextAgent.description,
+        agentBio: nextAgent.description || nextAgent.role,
         meetingPurpose: meetingPurpose,
       };
     } catch (error) {

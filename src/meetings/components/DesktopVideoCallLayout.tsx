@@ -28,6 +28,7 @@ export const DesktopVideoCallLayout: React.FC<DesktopVideoCallLayoutProps> = ({
     role: 'You',
     avatar: user.avatar,
     color: user.color,
+    description: '',
     isUser: true,
     isSpeaking: currentSpeakerId === user.id,
     isNextToSpeak: nextSpeakerId === user.id,

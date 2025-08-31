@@ -40,7 +40,7 @@ const sanitizeParticipant = (participant: Participant): Participant => ({
   ...participant,
   name: sanitizeString(participant.name),
   role: sanitizeString(participant.role),
-  description: participant.description ? sanitizeString(participant.description) : undefined,
+  description: participant.description ? sanitizeString(participant.description) : '',
 });
 
 const sanitizeMessage = (message: Message): Message => ({

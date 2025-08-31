@@ -9,10 +9,24 @@ export function testVoiceAssignments() {
 
   // Mock AI participants (no users)
   const participants: Participant[] = [
-    { id: 'expert-1', name: 'Alice', role: 'Tech Lead', avatar: '👩‍💻', color: 'purple' },
-    { id: 'expert-2', name: 'Bob', role: 'Designer', avatar: '👨‍🎨', color: 'blue' },
-    { id: 'expert-3', name: 'Carol', role: 'PM', avatar: '👩‍💼', color: 'green' },
-    { id: 'expert-4', name: 'Dave', role: 'Engineer', avatar: '👨‍💻', color: 'yellow' },
+    {
+      id: 'expert-1',
+      name: 'Alice',
+      role: 'Tech Lead',
+      avatar: '👩‍💻',
+      color: 'purple',
+      description: '',
+    },
+    { id: 'expert-2', name: 'Bob', role: 'Designer', avatar: '👨‍🎨', color: 'blue', description: '' },
+    { id: 'expert-3', name: 'Carol', role: 'PM', avatar: '👩‍💼', color: 'green', description: '' },
+    {
+      id: 'expert-4',
+      name: 'Dave',
+      role: 'Engineer',
+      avatar: '👨‍💻',
+      color: 'yellow',
+      description: '',
+    },
   ];
 
   // Test initial assignment

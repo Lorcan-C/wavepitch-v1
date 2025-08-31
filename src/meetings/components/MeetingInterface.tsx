@@ -8,10 +8,10 @@ import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
+import { AIResponseHandling } from '@/services/AIResponseHandling';
+import { AIResponseService } from '@/services/AIResponseService';
 import { MessageCommitService } from '@/services/MessageCommitService';
 import { ResponseContextService } from '@/services/ResponseContextService';
-import { AIResponseService } from '@/services/AIResponseService';
-import { AIResponseHandling } from '@/services/AIResponseHandling';
 import { SpeakerRotationService } from '@/services/SpeakerRotationService';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
@@ -73,17 +73,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const [meetingSummary, setMeetingSummary] = useState<MeetingSummary | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
-  // Streaming state for real-time AI responses
-  const [streamingMessage, setStreamingMessage] = useState<string>('');
-  const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Context management for token optimization
-  const [conversationContext, setConversationContext] = useState({
-    currentPhase: 'discussion',
-    tokenUsage: 0,
-    lastTruncation: null as number | null,
-  });
 
   // Audio integration - automatically generates and plays audio for new messages
   const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants);
@@ -129,7 +119,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
                 expertise: p.role, // Using role as expertise for now
               })),
               meetingContext: meetingTitle,
-              currentPhase: conversationContext.currentPhase,
+              currentPhase: 'discussion',
             },
           }),
         });
@@ -147,8 +137,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     if (meetingId && participants.length > 0) {
       initializeMeeting();
     }
-  }, [meetingId, participants, meetingTitle, conversationContext.currentPhase, sessionId]);
-
+  }, [meetingId, participants, meetingTitle, sessionId]);
 
   // Enhanced message handler using existing API endpoints
   const handleSendMessage = useCallback(
@@ -166,15 +155,22 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       setMessages(updatedMessages);
 
       // Get agent context for next speaker
-      const agentContext = ResponseContextService.getNextAgent(participants, currentSpeakerIndex, meetingTitle);
-      const currentExpert = SpeakerRotationService.getCurrentSpeaker(participants, currentSpeakerIndex);
-      
+      const agentContext = ResponseContextService.getNextAgent(
+        participants,
+        currentSpeakerIndex,
+        meetingTitle,
+      );
+      const currentExpert = SpeakerRotationService.getCurrentSpeaker(
+        participants,
+        currentSpeakerIndex,
+      );
+
       setIsLoading(true);
 
       try {
         // Create user message object for AI service
         const userMessage = MessageCommitService.createUserMessage(content, user);
-        
+
         // Call new AI service
         const aiResult = await AIResponseService.generateResponse({
           sessionId: sessionId || meetingId,
@@ -184,25 +180,27 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         // Process AI response
         const aiMessage = await AIResponseHandling.processResponse(
-          aiResult.response, 
-          currentExpert.id, 
-          currentExpert.name
+          aiResult.response,
+          currentExpert.id,
+          currentExpert.name,
         );
-        
+
         // Add AI message to conversation
         setMessages((prev) => [...prev, aiMessage]);
-        
+
         // Advance to next speaker
-        const nextIndex = SpeakerRotationService.advanceToNext(currentSpeakerIndex, participants.length);
+        const nextIndex = SpeakerRotationService.advanceToNext(
+          currentSpeakerIndex,
+          participants.length,
+        );
         setCurrentSpeakerIndex(nextIndex);
-        
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Failed to generate AI response:', error);
           // Add error message to conversation
           const errorMessage: Message = {
             id: Date.now().toString(),
-            content: "Sorry, the response service is currently experiencing some difficulties.",
+            content: 'Sorry, the response service is currently experiencing some difficulties.',
             sender: currentExpert.id,
             isUser: false,
             timestamp: Date.now(),
@@ -214,15 +212,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         setIsLoading(false);
       }
     },
-    [
-      messages,
-      user,
-      participants,
-      currentSpeakerIndex,
-      sessionId,
-      meetingId,
-      meetingTitle,
-    ],
+    [messages, user, participants, currentSpeakerIndex, sessionId, meetingId, meetingTitle],
   );
 
   // Enhanced next speaker with advance-speaker API integration
@@ -417,9 +407,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             currentSpeakerIndex={currentSpeakerIndex}
             showSpeakerQueue={showSpeakerQueue}
             isLoading={isLoading}
-            isStreaming={isStreaming}
+            isStreaming={false}
             isMicActive={isRecording || isTranscribing}
-            streamingMessage={streamingMessage}
+            streamingMessage=""
             currentTranscript={currentTranscript}
             onSendMessage={handleSendMessage}
             onNextSpeaker={handleNextSpeaker}
