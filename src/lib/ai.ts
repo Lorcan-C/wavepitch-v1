@@ -1,4 +1,5 @@
-import { createAzure, openai } from '@ai-sdk/openai';
+import { createAzure } from '@ai-sdk/azure';
+import { openai } from '@ai-sdk/openai';
 import {
   generateText as aiGenerateText,
   streamText as aiStreamText,
