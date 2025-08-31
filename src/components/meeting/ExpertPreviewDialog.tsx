@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { AlertCircle, RefreshCw, Users } from 'lucide-react';
 
+import { TTSConsentToggle } from '@/components/tts/TTSConsentToggle';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -183,6 +184,8 @@ export const ExpertPreviewDialog: React.FC<ExpertPreviewDialogProps> = ({ open, 
           </DialogTitle>
           <DialogDescription>AI-generated experts for "{meetingTitle}"</DialogDescription>
         </DialogHeader>
+
+        <TTSConsentToggle className="px-6 py-4 border-b border-gray-100" />
 
         <div className="max-h-[400px] overflow-y-auto">
           {/* Error State */}
