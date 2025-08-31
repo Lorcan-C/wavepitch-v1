@@ -13,11 +13,15 @@ const WaveformIcon: React.FC = () => (
   </div>
 );
 
-export const TTSMessageControl: React.FC = () => {
+interface TTSMessageControlProps {
+  messageId: string;
+}
+
+export const TTSMessageControl: React.FC<TTSMessageControlProps> = ({ messageId }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleToggle = () => {
-    console.log(`TTS: ${isPlaying ? 'Pause' : 'Play'} clicked`);
+    console.log(`TTS: ${isPlaying ? 'Pause' : 'Play'} message ${messageId}`);
     setIsPlaying(!isPlaying);
   };
 

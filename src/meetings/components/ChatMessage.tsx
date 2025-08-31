@@ -29,7 +29,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             {message.senderName || (isUser ? 'You' : 'Agent')}
           </span>
           <span className="text-xs text-gray-500">{formatTimestamp(message.timestamp)}</span>
-          {!isUser && <TTSMessageControl />}
+          {!isUser && <TTSMessageControl messageId={message.id} />}
         </div>
 
         {/* Message bubble */}
