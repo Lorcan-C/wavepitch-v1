@@ -62,6 +62,7 @@ interface MeetingLayoutProviderProps {
   isStreaming: boolean;
   isMicActive: boolean;
   streamingMessage: string;
+  currentTranscript?: string;
   onSendMessage: (content: string) => void;
   onNextSpeaker: () => void;
   onToggleMic: () => void;
@@ -108,6 +109,7 @@ const DesktopLayout: React.FC<{
   isStreaming: boolean;
   isMicActive: boolean;
   streamingMessage: string;
+  currentTranscript?: string;
   chatPanelSize: number;
   onSendMessage: (content: string) => void;
   onNextSpeaker: () => void;
@@ -128,6 +130,7 @@ const DesktopLayout: React.FC<{
   isStreaming,
   isMicActive,
   streamingMessage,
+  currentTranscript,
   chatPanelSize,
   onSendMessage,
   onNextSpeaker,
@@ -183,6 +186,7 @@ const DesktopLayout: React.FC<{
         isStreaming={isStreaming}
         isMicActive={isMicActive}
         streamingMessage={streamingMessage}
+        currentTranscript={currentTranscript}
         onSendMessage={onSendMessage}
         onNextSpeaker={onNextSpeaker}
         onToggleMic={onToggleMic}
@@ -205,6 +209,7 @@ const MobileLayout: React.FC<{
   isStreaming: boolean;
   isMicActive: boolean;
   streamingMessage: string;
+  currentTranscript?: string;
   isChatOpen: boolean;
   onSendMessage: (content: string) => void;
   onNextSpeaker: () => void;
@@ -225,6 +230,7 @@ const MobileLayout: React.FC<{
   isStreaming,
   isMicActive,
   streamingMessage,
+  currentTranscript,
   isChatOpen,
   onSendMessage,
   onNextSpeaker,
@@ -264,6 +270,7 @@ const MobileLayout: React.FC<{
           isStreaming={isStreaming}
           isMicActive={isMicActive}
           streamingMessage={streamingMessage}
+          currentTranscript={currentTranscript}
           onSendMessage={onSendMessage}
           onNextSpeaker={onNextSpeaker}
           onToggleMic={onToggleMic}
@@ -286,6 +293,7 @@ export const MeetingLayoutProvider: React.FC<MeetingLayoutProviderProps> = ({
   isStreaming,
   isMicActive,
   streamingMessage,
+  currentTranscript,
   onSendMessage,
   onNextSpeaker,
   onToggleMic,
@@ -359,6 +367,7 @@ export const MeetingLayoutProvider: React.FC<MeetingLayoutProviderProps> = ({
           isStreaming={isStreaming}
           isMicActive={isMicActive}
           streamingMessage={streamingMessage}
+          currentTranscript={currentTranscript}
           chatPanelSize={chatPanelSize}
           onSendMessage={onSendMessage}
           onNextSpeaker={onNextSpeaker}
@@ -381,6 +390,7 @@ export const MeetingLayoutProvider: React.FC<MeetingLayoutProviderProps> = ({
           isStreaming={isStreaming}
           isMicActive={isMicActive}
           streamingMessage={streamingMessage}
+          currentTranscript={currentTranscript}
           isChatOpen={isChatOpen}
           onSendMessage={onSendMessage}
           onNextSpeaker={onNextSpeaker}

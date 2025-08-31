@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useClerkSupabase } from '@/hooks/useClerkSupabase';
+import { useMeetingSTT } from '@/hooks/useMeetingSTT';
 import { useMessageAudio } from '@/hooks/useMessageAudio';
 import { voiceAssigner } from '@/services/voice';
 import { useMeetingStore } from '@/stores/meeting-store';
@@ -44,7 +45,6 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   // UI State
   const [isMuted, setIsMuted] = useState(false);
   const [showSpeakerQueue, setShowSpeakerQueue] = useState(false);
-  const [isMicActive, setIsMicActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [meetingStartTime] = useState<string>(new Date().toISOString());
@@ -84,6 +84,28 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   // Audio integration - automatically generates and plays audio for new messages
   const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants, {
     autoPlay: !isMuted,
+  });
+
+  // STT integration for voice input
+  const {
+    isRecording,
+    isTranscribing,
+    currentTranscript,
+    startSession: startSTT,
+    stopSession: stopSTT,
+    resetTranscript,
+  } = useMeetingSTT({
+    onTranscript: (text, isFinal) => {
+      if (isFinal && text.trim()) {
+        // Send final transcript as message
+        handleSendMessage(text.trim());
+        resetTranscript();
+      }
+    },
+    onError: (error) => {
+      console.error('STT Error:', error);
+      toast.error(`Voice input error: ${error}`);
+    },
   });
 
   // Initialize meeting context on mount
@@ -329,10 +351,22 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     }
   }, [participants, currentSpeakerIndex, sessionId, meetingId]);
 
-  const handleToggleMic = () => {
+  const handleToggleMic = useCallback(async () => {
     console.log('Mic toggled');
-    setIsMicActive((prev) => !prev);
-  };
+
+    if (isRecording || isTranscribing) {
+      // Stop recording and transcription
+      await stopSTT();
+    } else {
+      // Start recording and transcription
+      try {
+        await startSTT();
+      } catch (error) {
+        console.error('Failed to start voice input:', error);
+        toast.error('Failed to start voice input');
+      }
+    }
+  }, [isRecording, isTranscribing, startSTT, stopSTT]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -462,8 +496,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
             showSpeakerQueue={showSpeakerQueue}
             isLoading={isLoading}
             isStreaming={isStreaming}
-            isMicActive={isMicActive}
+            isMicActive={isRecording || isTranscribing}
             streamingMessage={streamingMessage}
+            currentTranscript={currentTranscript}
             onSendMessage={handleSendMessage}
             onNextSpeaker={handleNextSpeaker}
             onToggleMic={handleToggleMic}

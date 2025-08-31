@@ -18,6 +18,7 @@ interface ChatPanelProps {
   onToggleMic: () => void;
   streamingMessage?: string;
   isStreaming?: boolean;
+  currentTranscript?: string;
 }
 
 const ThinkingIndicator: React.FC = () => {
@@ -45,6 +46,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onToggleMic,
   streamingMessage = '',
   isStreaming = false,
+  currentTranscript = '',
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -59,7 +61,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   // Enhanced auto-scroll with user scroll detection
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, streamingMessage, shouldAutoScroll]);
+  }, [messages, isLoading, streamingMessage, shouldAutoScroll, scrollToBottom]);
 
   // Detect user scroll to disable auto-scroll temporarily
   const handleScroll = () => {
@@ -119,6 +121,27 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {streamingMessage}
                         <span className="inline-block w-2 h-5 bg-blue-500 animate-pulse ml-1"></span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Show live transcript when speaking */}
+              {isMicActive && currentTranscript && (
+                <div className="flex justify-end mb-4">
+                  <div className="max-w-xs lg:max-w-md">
+                    <div className="flex items-center gap-2 mb-1 justify-end">
+                      <div className="flex gap-1">
+                        <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
+                        <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                        <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                      </div>
+                      <span className="text-xs font-medium text-gray-600">Listening...</span>
+                    </div>
+                    <div className="bg-blue-50 text-blue-900 border border-blue-200 rounded-lg rounded-br-sm px-4 py-3">
+                      <p className="text-sm leading-relaxed italic">
+                        "{currentTranscript}"
+                        <span className="inline-block w-2 h-5 bg-red-500 animate-pulse ml-1"></span>
                       </p>
                     </div>
                   </div>

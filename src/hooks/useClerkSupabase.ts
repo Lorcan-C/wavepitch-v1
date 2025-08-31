@@ -143,7 +143,7 @@ export function useClerkSupabase() {
 
         console.log(
           '✅ Supabase save successful - record ID:',
-          data?.[0]?.id || meetingData.meetingId,
+          (data as unknown as Array<{ id: string }> | null)?.[0]?.id || meetingData.meetingId,
         );
         return true;
       } catch (error) {

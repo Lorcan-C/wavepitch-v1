@@ -10,6 +10,7 @@ interface MeetingChatPanelProps {
   isStreaming: boolean;
   isMicActive: boolean;
   streamingMessage: string;
+  currentTranscript?: string;
   onSendMessage: (content: string) => void;
   onNextSpeaker: () => void;
   onToggleMic: () => void;
@@ -22,6 +23,7 @@ export const MeetingChatPanel: React.FC<MeetingChatPanelProps> = ({
   isStreaming,
   isMicActive,
   streamingMessage,
+  currentTranscript,
   onSendMessage,
   onNextSpeaker,
   onToggleMic,
@@ -37,6 +39,7 @@ export const MeetingChatPanel: React.FC<MeetingChatPanelProps> = ({
       onToggleMic={onToggleMic}
       streamingMessage={streamingMessage}
       isStreaming={isStreaming}
+      currentTranscript={currentTranscript}
     />
   );
 };
