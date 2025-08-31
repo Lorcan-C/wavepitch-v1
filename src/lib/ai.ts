@@ -1,14 +1,24 @@
-import { openai } from '@ai-sdk/openai';
+import { createAzure, openai } from '@ai-sdk/openai';
 import {
   generateText as aiGenerateText,
   streamText as aiStreamText,
   experimental_generateSpeech as generateSpeech,
 } from 'ai';
 
+// Azure OpenAI configuration
+const azure = createAzure({
+  baseURL: process.env.AZURE_OPENAI_ENDPOINT || 'https://wavepitch-mvp.openai.azure.com',
+  apiKey: process.env.AZURE_OPENAI_API_KEY || '',
+  apiVersion: '2024-12-01-preview',
+});
+
 // Model Configuration - Centralized model management
 export const AI_MODELS = {
   // Text generation models
   TEXT: {
+    // Azure models (using your deployment name)
+    AZURE_GPT_4O_MINI: azure('gpt-4o-mini'),
+    // OpenAI models (kept for fallback)
     GPT_4O: openai('gpt-4o'),
     GPT_4O_MINI: openai('gpt-4o-mini'),
     GPT_4: openai('gpt-4'),
@@ -22,8 +32,8 @@ export const AI_MODELS = {
   },
 } as const;
 
-// Default model selection - change here to switch models globally
-export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4_1_NANO;
+// Default model selection - now using Azure for text
+export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.AZURE_GPT_4O_MINI;
 export const DEFAULT_SPEECH_MODEL = AI_MODELS.SPEECH.GPT_4O_MINI_TTS;
 
 // Legacy export for backward compatibility
