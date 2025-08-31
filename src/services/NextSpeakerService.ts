@@ -34,7 +34,6 @@ export class NextSpeakerService {
     audioRepliesEnabled,
     user,
     userMessage,
-    abortController,
     onSpeakerIndexChange,
     onMessageAdd,
     onSetMessages,
@@ -64,7 +63,6 @@ export class NextSpeakerService {
         meetingTitle,
         user,
         userMessage,
-        abortController,
       );
 
       // 3. Add it to conversation history
