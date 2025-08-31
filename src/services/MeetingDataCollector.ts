@@ -47,12 +47,12 @@ export class MeetingDataCollector {
   }
 
   private static async generateSummary(
-    messages: Message[],
-    title: string,
+    _messages: Message[],
+    _title: string,
   ): Promise<MeetingSummary> {
     // TODO: Replace with real summary generation
     return {
-      keyIdeas: [`Discussion about: ${title}`],
+      keyIdeas: [`Discussion about: ${_title}`],
       strategicQuestions: [],
       decisions: [],
     };

@@ -7,10 +7,11 @@ import { toast } from 'sonner';
 import { ExpertPreviewDialog } from '@/components/meeting/ExpertPreviewDialog';
 import { useClerkSupabase } from '@/hooks/useClerkSupabase';
 import { useMeetingSTT } from '@/hooks/useMeetingSTT';
-import { useMessageAudio } from '@/hooks/useMessageAudio';
+// import { useMessageAudio } from '@/hooks/useMessageAudio'; // Disabled - using TTSTextProcessingService instead
 import { AIResponseHandling } from '@/services/AIResponseHandling';
 import { AIResponseService } from '@/services/AIResponseService';
 import { MessageCommitService } from '@/services/MessageCommitService';
+import { MeetingDataCollector } from '@/services/MeetingDataCollector';
 import { ResponseContextService } from '@/services/ResponseContextService';
 import { SpeakerRotationService } from '@/services/SpeakerRotationService';
 import { TTSTextProcessingService } from '@/services/TTSTextProcessingService';
@@ -81,8 +82,9 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Audio integration - automatically generates and plays audio for new messages
-  const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants);
+  // Audio integration - disabled in favor of TTSTextProcessingService
+  // const { messagesWithAudio } = useMessageAudio(messages, sessionId || meetingId, participants);
+  const messagesWithAudio = messages;
 
   // STT integration for voice input
   const {
@@ -131,7 +133,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         });
 
         // Assign voices to AI participants for TTS
-        TTSVoiceSelectionService.assignVoices(participants);
+        TTSVoiceSelectionService.assignVoices(participants, meetingId);
         console.log('TTS voice assignments created for participants');
 
         setSessionId(meetingId);
@@ -196,7 +198,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
         // Generate TTS for AI message if enabled
         if (audioRepliesEnabled && !aiMessage.isUser) {
-          TTSTextProcessingService.processMessageForTTS(aiMessage);
+          TTSTextProcessingService.processMessageForTTS(aiMessage, sessionId || meetingId);
         }
 
         // Advance to next speaker
@@ -272,7 +274,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
           // Generate TTS for pre-generated AI message if enabled
           if (audioRepliesEnabled) {
-            TTSTextProcessingService.processMessageForTTS(transitionMessage);
+            TTSTextProcessingService.processMessageForTTS(transitionMessage, sessionId || meetingId);
           }
         }
       } else {
@@ -362,9 +364,20 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         // End the meeting in store
         await endMeeting();
 
-        // Get meeting data and save
+        // Collect and save meeting data using new service
         const meetingData = getMeetingData();
-        const saved = await saveMeeting(meetingData);
+        
+        const completeMeetingData = await MeetingDataCollector.collect(
+          meetingData.meetingId,
+          meetingData.sessionId,
+          meetingData.meetingTitle,
+          meetingData.participants,
+          meetingData.messages,
+          meetingData.meetingStartTime || new Date().toISOString(),
+          meetingData.meetingEndTime
+        );
+
+        const saved = await MeetingDataCollector.saveToSupabase(completeMeetingData, user.id);
 
         if (saved) {
           toast.success('Meeting saved successfully');
