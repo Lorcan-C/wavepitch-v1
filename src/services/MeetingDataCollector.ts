@@ -1,3 +1,4 @@
+import { MeetingData } from '../hooks/useClerkSupabase';
 import { MeetingSummary, Message, Participant } from '../meetings/types';
 
 export interface CompleteMeetingData {
@@ -48,38 +49,25 @@ export class MeetingDataCollector {
 
   private static async generateSummary(
     _messages: Message[],
-    _title: string,
+    title: string,
   ): Promise<MeetingSummary> {
     // TODO: Replace with real summary generation
     return {
-      keyIdeas: [`Discussion about: ${_title}`],
+      keyIdeas: [`Discussion about: ${title}`],
       strategicQuestions: [],
       decisions: [],
     };
   }
 
-  static async saveToSupabase(meetingData: CompleteMeetingData, userId: string): Promise<boolean> {
-    try {
-      console.log('Calling Edge Function to save conversation');
-
-      const response = await fetch('/api/conversations/savemeeting', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...meetingData,
-          userId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Save failed: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result.success;
-    } catch (error) {
-      console.error('Failed to save conversation:', error);
-      return false;
-    }
+  static convertToMeetingData(meetingData: CompleteMeetingData): MeetingData {
+    return {
+      meetingId: meetingData.meetingId,
+      meetingTitle: meetingData.title,
+      participants: meetingData.participants,
+      messages: meetingData.messages,
+      meetingStartTime: meetingData.startTime,
+      meetingEndTime: meetingData.endTime,
+      sessionId: meetingData.sessionId,
+    };
   }
 }

@@ -43,7 +43,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
   const navigate = useNavigate();
 
   // Clerk-Supabase integration
-  const { isAuthenticated, userId } = useClerkSupabase();
+  const { isAuthenticated, saveMeeting } = useClerkSupabase();
   const { endMeeting, getMeetingData } = useMeetingStore();
 
   // TTS integration
@@ -297,7 +297,8 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
           meetingData.meetingEndTime || new Date().toISOString(),
         );
 
-        const saved = await MeetingDataCollector.saveToSupabase(completeMeetingData, userId!);
+        const meetingDataForSave = MeetingDataCollector.convertToMeetingData(completeMeetingData);
+        const saved = await saveMeeting(meetingDataForSave);
 
         if (saved) {
           toast.success('Meeting saved successfully');

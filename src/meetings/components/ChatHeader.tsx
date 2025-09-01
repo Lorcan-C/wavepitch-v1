@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { Eye, EyeOff, FileText, Users, X } from 'lucide-react';
 
 import { MeetingTimer } from '@/components/MeetingTimer';
+import { SaveTranscriptButton } from '@/components/meeting/SaveTranscriptButton';
 import { TTSHeaderToggle } from '@/components/tts/TTSHeaderToggle';
 import { Button } from '@/components/ui/button';
 import { generateMeetingTopic } from '@/lib/meeting-topic-generator';
@@ -88,6 +89,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           >
             <Users className="h-4 w-4" />
           </Button>
+
+          {/* Save Transcript Button */}
+          <SaveTranscriptButton />
 
           {/* TTS Toggle */}
           <TTSHeaderToggle />

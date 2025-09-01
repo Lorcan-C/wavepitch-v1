@@ -27,7 +27,7 @@ export class ConversationsService {
       }
 
       const { data, error } = await supabase
-        .from('conversations')
+        .from('conversations_v2')
         .select(
           'id, title, platform, meeting_id, start_time, end_time, duration_minutes, participant_count, transcript_data, user_id',
         )

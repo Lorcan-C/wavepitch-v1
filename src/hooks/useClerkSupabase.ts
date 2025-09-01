@@ -114,7 +114,7 @@ export function useClerkSupabase() {
           'bytes',
         );
 
-        const { error } = await client.from('conversations').upsert(
+        const { error } = await client.from('conversations_v2').upsert(
           {
             id: meetingData.meetingId,
             title: meetingData.meetingTitle,
@@ -165,7 +165,7 @@ export function useClerkSupabase() {
       if (!client) return [];
 
       const { data, error } = await client
-        .from('conversations')
+        .from('conversations_v2')
         .select(
           'id, title, platform, meeting_id, start_time, end_time, duration_minutes, participant_count, transcript_data, user_id',
         )
@@ -192,7 +192,7 @@ export function useClerkSupabase() {
         if (!client) return null;
 
         const { data, error } = await client
-          .from('conversations')
+          .from('conversations_v2')
           .select('*')
           .eq('id', conversationId)
           .eq('user_id', userId)
