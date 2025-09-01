@@ -86,11 +86,6 @@ export function SaveTranscriptButton() {
     }
   }
 
-  // Don't show button if no messages
-  if (messages.length === 0) {
-    return null;
-  }
-
   return (
     <Button
       onClick={saveTranscript}

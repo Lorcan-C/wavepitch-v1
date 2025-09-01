@@ -44,7 +44,12 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
 
   // Clerk-Supabase integration
   const { isAuthenticated, saveMeeting } = useClerkSupabase();
-  const { endMeeting, getMeetingData } = useMeetingStore();
+  const {
+    endMeeting,
+    getMeetingData,
+    addMessage: addMessageToStore,
+    loadMeeting,
+  } = useMeetingStore();
 
   // TTS integration
   const { audioRepliesEnabled } = useTTSStore();
@@ -161,8 +166,20 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
         userMessage: content,
         abortController: abortControllerRef.current,
         onSpeakerIndexChange: setCurrentSpeakerIndex,
-        onMessageAdd: (message) => setMessages((prev) => [...prev, message]),
-        onSetMessages: setMessages,
+        onMessageAdd: (message) => {
+          setMessages((prev) => [...prev, message]);
+          addMessageToStore(message);
+        },
+        onSetMessages: (messages) => {
+          setMessages(messages);
+          loadMeeting({
+            meetingId,
+            sessionId: sessionId || meetingId,
+            meetingTitle,
+            participants,
+            messages,
+          });
+        },
         onSetLoading: setIsLoading,
       });
     },
@@ -175,6 +192,7 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       meetingTitle,
       audioRepliesEnabled,
       user,
+      addMessageToStore,
     ],
   );
 
@@ -194,8 +212,20 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
       audioRepliesEnabled,
       abortController: abortControllerRef.current,
       onSpeakerIndexChange: setCurrentSpeakerIndex,
-      onMessageAdd: (message) => setMessages((prev) => [...prev, message]),
-      onSetMessages: setMessages,
+      onMessageAdd: (message) => {
+        setMessages((prev) => [...prev, message]);
+        addMessageToStore(message);
+      },
+      onSetMessages: (messages) => {
+        setMessages(messages);
+        loadMeeting({
+          meetingId,
+          sessionId: sessionId || meetingId,
+          meetingTitle,
+          participants,
+          messages,
+        });
+      },
       onSetLoading: setIsLoading,
     });
   }, [
@@ -206,6 +236,8 @@ export const MeetingInterface: React.FC<MeetingInterfaceProps> = ({
     meetingId,
     meetingTitle,
     audioRepliesEnabled,
+    addMessageToStore,
+    loadMeeting,
   ]);
 
   const handleToggleMic = useCallback(async () => {
