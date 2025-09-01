@@ -118,11 +118,17 @@ export class NextSpeakerService {
     const userMessageObj =
       userMessage && user ? MessageCommitService.createUserMessage(userMessage, user) : null;
 
+    // Generate meeting transcript for context
+    const meetingTranscript = messages
+      .map((msg) => `${msg.senderName || msg.sender}: ${msg.content}`)
+      .join('\n\n');
+
     // Generate AI response
     const aiResult = await AIResponseService.generateResponse({
       sessionId: sessionId || meetingId,
       userMessage: userMessageObj || messages[messages.length - 1],
       agentContext,
+      meetingTranscript,
     });
 
     // Process and return the response

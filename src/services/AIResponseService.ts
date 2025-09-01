@@ -11,6 +11,7 @@ export interface AIResponseContext {
   sessionId: string;
   userMessage: Message;
   agentContext: AgentContext;
+  meetingTranscript?: string;
 }
 
 export interface AIResponseResult {
@@ -31,6 +32,7 @@ export class AIResponseService {
         agentRole: context.agentContext.agentRole,
         agentBio: context.agentContext.agentBio,
         meetingPurpose: context.agentContext.meetingPurpose,
+        meetingTranscript: context.meetingTranscript,
       }),
     });
 

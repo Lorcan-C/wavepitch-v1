@@ -285,3 +285,6 @@ export const selectNextSpeaker = (state: MeetingState) => {
   const nextIndex = (state.currentSpeakerIndex + 1) % Math.max(1, state.participants.length);
   return state.participants[nextIndex] || null;
 };
+
+export const selectMeetingTranscript = (state: MeetingState): string =>
+  state.messages.map((msg) => `${msg.senderName || msg.sender}: ${msg.content}`).join('\n\n');
