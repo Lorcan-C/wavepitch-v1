@@ -124,7 +124,21 @@ export function useClerkSupabase() {
             end_time: endTime,
             duration_minutes: durationMinutes,
             participant_count: meetingData.participants.length,
-            transcript_data: transcriptData,
+            message_count: meetingData.messages.length,
+            participants: meetingData.participants,
+            messages: meetingData.messages,
+            metadata: {
+              sessionId: meetingData.sessionId,
+              segments: meetingData.messages.map((msg, index) => ({
+                id: msg.id,
+                speaker: msg.senderName || msg.sender,
+                text: msg.content,
+                startTime: index * 30,
+                endTime: (index + 1) * 30,
+                confidence: 1.0,
+              })),
+              fullText: meetingData.messages.map((msg) => msg.content).join(' '),
+            },
             user_id: userId,
           },
           {
