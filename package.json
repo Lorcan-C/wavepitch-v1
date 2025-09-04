@@ -17,7 +17,7 @@
     "licenses": "license-checker --summary",
     "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mts,.mjs",
     "lint:fix": "eslint . --fix --ext .ts,.tsx,.js,.cjs,.mts,.mjs",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "prepush": "npm run typecheck && npm run lint && npm run build",
     "preview": "vite preview",
     "stylelint": "stylelint \"**/*.{css,scss}\"",
