@@ -14,6 +14,7 @@
     "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "postinstall": "npm list vite || true",
     "licenses": "license-checker --summary",
     "lint": "eslint . --ext .ts,.tsx,.js,.cjs,.mts,.mjs",
     "lint:fix": "eslint . --fix --ext .ts,.tsx,.js,.cjs,.mts,.mjs",
