@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "pattern": {
+        "type": "startup"
+      },
+      "action": {
+        "type": "shell",
+        "command": "./scripts/load-context.sh"
+      }
+    }
+  ]
+}
