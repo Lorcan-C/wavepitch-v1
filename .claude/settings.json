@@ -1,13 +1,15 @@
 {
-  "rules": [
-    {
-      "pattern": {
-        "type": "startup"
-      },
-      "action": {
-        "type": "shell",
-        "command": "./scripts/load-context.sh"
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/load-context.sh"
+          }
+        ]
       }
-    }
-  ]
+    ]
+  }
 }
