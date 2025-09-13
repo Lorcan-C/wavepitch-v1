@@ -1,0 +1,4 @@
+genagent==0.2.7
+supabase==2.3.4
+numpy==1.26.4
+openai==1.51.2

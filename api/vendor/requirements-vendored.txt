@@ -1,0 +1,10 @@
+# Vendored packages - fallback if PyPI is unavailable
+# To use: pip install -r api/vendor/requirements-vendored.txt
+
+# Install from local .whl files
+./api/vendor/genagent-0.2.7-py3-none-any.whl
+./api/vendor/supabase-2.3.4-py3-none-any.whl
+./api/vendor/openai-1.51.2-py3-none-any.whl
+
+# These should still come from PyPI (have many dependencies)
+numpy==1.26.4
