@@ -84,7 +84,7 @@ export class InMeetingProcessingService {
         data: stream,
         metadata: {
           processingTime,
-          aiProvider: 'openai-gpt-4o',
+          aiProvider: 'openai-gpt-4.1-nano',
         },
       };
     } catch (error) {
@@ -125,7 +125,7 @@ export class InMeetingProcessingService {
         },
         metadata: {
           processingTime,
-          aiProvider: 'openai-gpt-4o',
+          aiProvider: 'openai-gpt-4.1-nano',
         },
       };
     } catch (error) {

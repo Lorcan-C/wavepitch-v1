@@ -65,7 +65,7 @@ export class PitchProcessingService {
         meetingData: meetingSetup.object,
         metadata: {
           processingTime,
-          aiProvider: 'openai-gpt-4o',
+          aiProvider: 'openai-gpt-4.1-nano',
           qualityScore: this.calculateQualityScore(meetingSetup.object.experts),
         },
       };
@@ -140,7 +140,7 @@ export class PitchProcessingService {
       return {
         status: 'healthy',
         details: {
-          aiProvider: 'openai-gpt-4o',
+          aiProvider: 'openai-gpt-4.1-nano',
           responseLength: testResult.text.length,
           timestamp: new Date().toISOString(),
         },

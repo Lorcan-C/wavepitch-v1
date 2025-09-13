@@ -22,8 +22,8 @@ export const AI_MODELS = {
   },
 } as const;
 
-// Default model selection - back to OpenAI for text
-export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4O_MINI;
+// Default model selection - using GPT-4.1 Nano for text
+export const DEFAULT_TEXT_MODEL = AI_MODELS.TEXT.GPT_4_1_NANO;
 export const DEFAULT_SPEECH_MODEL = AI_MODELS.SPEECH.GPT_4O_MINI_TTS;
 
 // Legacy export for backward compatibility
