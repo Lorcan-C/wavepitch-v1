@@ -38,7 +38,7 @@ const NewPage: React.FC = () => {
       }}
     >
       {/* Logo */}
-      <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 z-20">
+      <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 z-0">
         <Logo size="md" />
       </div>
       <ResponsiveContainer size="lg" className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl">
